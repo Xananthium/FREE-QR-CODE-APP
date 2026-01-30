@@ -21,19 +21,19 @@ Needless to say, I didn't pay their **$30/year membership** so this QR code coul
 ## 📱 Download Now
 
 ### **Android**
-👉 **[Download APK](../../releases/latest/download/digital-eclipse.apk)** *(Click to download - 89MB)*
+👉 **[Download APK](https://github.com/Xananthium/digital-eclipse/releases/download/v1.0.0/digital-eclipse.apk)** *(90MB)*
 
 *No Google Play account needed. Just download and install.*
 
 ### **iOS**
-🍎 **[Download IPA](../../releases/latest/download/digital-eclipse.ipa)** *(54MB)*
+🍎 **[Download IPA](https://github.com/Xananthium/digital-eclipse/releases/download/v1.0.0/digital-eclipse.ipa)** *(57MB)*
 
 *Requires AltStore or sideloading. [How to install →](https://faq.altstore.io/)*
 
 **Or submit to App Store** - See [App Store Submission Guide](#app-store-submission)
 
 ### **Web (Works Offline!)**
-🌐 **[Open Web App](web/index.html)** - Single HTML file, works offline, no installation needed
+🌐 **[Open Web App](https://xananthium.github.io/digital-eclipse/web/index.html)** - Single HTML file, works offline, no installation needed
 
 *Right-click → Save As to keep it on your computer forever*
 
