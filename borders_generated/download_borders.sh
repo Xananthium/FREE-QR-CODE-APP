@@ -1,0 +1,32 @@
+#!/bin/bash
+curl -s "http://71.112.215.60:8188/view?filename=punk_torn_00003_.png&type=output" > punk_torn.png
+curl -s "http://71.112.215.60:8188/view?filename=punk_pins_00003_.png&type=output" > punk_pins.png
+curl -s "http://71.112.215.60:8188/view?filename=punk_grunge_00003_.png&type=output" > punk_grunge.png
+curl -s "http://71.112.215.60:8188/view?filename=punk_anarchy_00003_.png&type=output" > punk_anarchy.png
+curl -s "http://71.112.215.60:8188/view?filename=punk_chains_00002_.png&type=output" > punk_chains.png
+curl -s "http://71.112.215.60:8188/view?filename=cyber_glitch_00002_.png&type=output" > cyber_glitch.png
+curl -s "http://71.112.215.60:8188/view?filename=cyber_neon_00002_.png&type=output" > cyber_neon.png
+curl -s "http://71.112.215.60:8188/view?filename=cyber_circuit_00002_.png&type=output" > cyber_circuit.png
+curl -s "http://71.112.215.60:8188/view?filename=cyber_matrix_00002_.png&type=output" > cyber_matrix.png
+curl -s "http://71.112.215.60:8188/view?filename=cyber_holo_00002_.png&type=output" > cyber_holo.png
+curl -s "http://71.112.215.60:8188/view?filename=edgy_skull_00002_.png&type=output" > edgy_skull.png
+curl -s "http://71.112.215.60:8188/view?filename=edgy_lightning_00002_.png&type=output" > edgy_lightning.png
+curl -s "http://71.112.215.60:8188/view?filename=edgy_metal_00002_.png&type=output" > edgy_metal.png
+curl -s "http://71.112.215.60:8188/view?filename=edgy_flame_00002_.png&type=output" > edgy_flame.png
+curl -s "http://71.112.215.60:8188/view?filename=edgy_blade_00002_.png&type=output" > edgy_blade.png
+curl -s "http://71.112.215.60:8188/view?filename=creature_blob_00002_.png&type=output" > creature_blob.png
+curl -s "http://71.112.215.60:8188/view?filename=creature_plant_00002_.png&type=output" > creature_plant.png
+curl -s "http://71.112.215.60:8188/view?filename=creature_cloud_00002_.png&type=output" > creature_cloud.png
+curl -s "http://71.112.215.60:8188/view?filename=creature_gem_00002_.png&type=output" > creature_gem.png
+curl -s "http://71.112.215.60:8188/view?filename=creature_goo_00002_.png&type=output" > creature_goo.png
+curl -s "http://71.112.215.60:8188/view?filename=cat_anime_00002_.png&type=output" > cat_anime.png
+curl -s "http://71.112.215.60:8188/view?filename=cat_cyber_00002_.png&type=output" > cat_cyber.png
+curl -s "http://71.112.215.60:8188/view?filename=cat_punk_00002_.png&type=output" > cat_punk.png
+curl -s "http://71.112.215.60:8188/view?filename=cat_galaxy_00002_.png&type=output" > cat_galaxy.png
+curl -s "http://71.112.215.60:8188/view?filename=cat_ninja_00002_.png&type=output" > cat_ninja.png
+curl -s "http://71.112.215.60:8188/view?filename=kawaii_stars_00001_.png&type=output" > kawaii_stars.png
+curl -s "http://71.112.215.60:8188/view?filename=kawaii_bows_00001_.png&type=output" > kawaii_bows.png
+curl -s "http://71.112.215.60:8188/view?filename=kawaii_hearts_00001_.png&type=output" > kawaii_hearts.png
+curl -s "http://71.112.215.60:8188/view?filename=kawaii_sweets_00001_.png&type=output" > kawaii_sweets.png
+curl -s "http://71.112.215.60:8188/view?filename=kawaii_flowers_00001_.png&type=output" > kawaii_flowers.png
+echo "Downloaded 30 borders!"

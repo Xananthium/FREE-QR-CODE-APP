@@ -1,0 +1,343 @@
+import 'package:flutter/material.dart';
+import 'package:qr_flutter/qr_flutter.dart';
+import 'empty_state.dart';
+
+/// A beautiful QR code display widget with theme support and error handling.
+///
+/// Features:
+/// - Configurable size and error correction level
+/// - Theme-aware colors (respects light/dark mode)
+/// - Graceful handling of empty/invalid data
+/// - Proper quiet zone padding for scannability
+/// - Customizable foreground and background colors
+/// - Responsive design
+///
+/// Example:
+/// ```dart
+/// QrDisplay(
+///   data: 'https://example.com',
+///   size: 250,
+/// )
+/// ```
+class QrDisplay extends StatelessWidget {
+  /// The data to encode in the QR code
+  final String? data;
+
+  /// Size of the QR code in logical pixels (default: 200)
+  final double size;
+
+  /// Error correction level (default: Medium - 15% recovery)
+  /// - Low: 7% recovery
+  /// - Medium: 15% recovery
+  /// - Quartile: 25% recovery
+  /// - High: 30% recovery
+  final int errorCorrectionLevel;
+
+  /// Foreground color (QR code pixels)
+  /// If null, uses theme's onSurface color
+  final Color? foregroundColor;
+
+  /// Background color (QR code background)
+  /// If null, uses theme's surface color
+  final Color? backgroundColor;
+
+  /// Whether to show a container around the QR code
+  final bool showContainer;
+
+  /// Padding around the QR code (quiet zone)
+  final double padding;
+
+  /// Border radius for the container
+  final double borderRadius;
+
+  /// Whether to show elevation/shadow
+  final bool showElevation;
+
+  const QrDisplay({
+    super.key,
+    required this.data,
+    this.size = 200,
+    this.errorCorrectionLevel = QrErrorCorrectLevel.M,
+    this.foregroundColor,
+    this.backgroundColor,
+    this.showContainer = true,
+    this.padding = 20,
+    this.borderRadius = 16,
+    this.showElevation = true,
+  });
+
+  /// Factory constructor for preview display (larger size)
+  factory QrDisplay.preview({
+    required String? data,
+    Color? foregroundColor,
+    Color? backgroundColor,
+  }) {
+    return QrDisplay(
+      data: data,
+      size: 280,
+      foregroundColor: foregroundColor,
+      backgroundColor: backgroundColor,
+      padding: 24,
+      borderRadius: 20,
+    );
+  }
+
+  /// Factory constructor for thumbnail display (smaller size)
+  factory QrDisplay.thumbnail({
+    required String? data,
+    Color? foregroundColor,
+    Color? backgroundColor,
+  }) {
+    return QrDisplay(
+      data: data,
+      size: 120,
+      foregroundColor: foregroundColor,
+      backgroundColor: backgroundColor,
+      showContainer: false,
+      padding: 12,
+      showElevation: false,
+    );
+  }
+
+  /// Factory constructor for export display (high quality, no shadows)
+  factory QrDisplay.export({
+    required String data,
+    double size = 1024,
+    Color? foregroundColor,
+    Color? backgroundColor,
+  }) {
+    return QrDisplay(
+      data: data,
+      size: size,
+      errorCorrectionLevel: QrErrorCorrectLevel.H, // Maximum recovery
+      foregroundColor: foregroundColor ?? Colors.black,
+      backgroundColor: backgroundColor ?? Colors.white,
+      showContainer: false,
+      showElevation: false,
+      padding: size * 0.10, // 10% quiet zone (ISO/IEC 18004 minimum)
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    // Handle empty or null data
+    if (data == null || data!.isEmpty) {
+      return _buildPlaceholder(context);
+    }
+
+    // Calculate total size including padding
+    final totalSize = size + (padding * 2);
+
+    // Determine colors
+    final qrForegroundColor = foregroundColor ?? colorScheme.onSurface;
+    final qrBackgroundColor = backgroundColor ?? colorScheme.surface;
+
+    Widget qrWidget = Container(
+      width: totalSize,
+      height: totalSize,
+      padding: EdgeInsets.all(padding),
+      decoration: showContainer
+          ? BoxDecoration(
+              color: qrBackgroundColor,
+              borderRadius: BorderRadius.circular(borderRadius),
+              boxShadow: showElevation
+                  ? [
+                      BoxShadow(
+                        color: colorScheme.shadow.withValues(alpha: 0.1),
+                        blurRadius: 20,
+                        offset: const Offset(0, 4),
+                      ),
+                      BoxShadow(
+                        color: colorScheme.shadow.withValues(alpha: 0.05),
+                        blurRadius: 40,
+                        offset: const Offset(0, 8),
+                      ),
+                    ]
+                  : null,
+            )
+          : null,
+      child: QrImageView(
+        data: data!,
+        version: QrVersions.auto,
+        size: size,
+        errorCorrectionLevel: errorCorrectionLevel,
+        eyeStyle: QrEyeStyle(
+          eyeShape: QrEyeShape.square,
+          color: qrForegroundColor,
+        ),
+        dataModuleStyle: QrDataModuleStyle(
+          dataModuleShape: QrDataModuleShape.square,
+          color: qrForegroundColor,
+        ),
+        embeddedImageStyle: const QrEmbeddedImageStyle(
+          size: Size(40, 40),
+        ),
+        semanticsLabel: 'QR code containing: ${data!.length > 50 ? "${data!.substring(0, 50)}..." : data!}',
+      ),
+    );
+
+    return qrWidget;
+  }
+
+  /// Build placeholder for empty data
+  Widget _buildPlaceholder(BuildContext context) {
+    final totalSize = size + (padding * 2);
+
+    return Container(
+      width: totalSize,
+      height: totalSize,
+      decoration: showContainer
+          ? BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(borderRadius),
+              border: Border.all(
+                color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
+                width: 2,
+                strokeAlign: BorderSide.strokeAlignInside,
+              ),
+            )
+          : null,
+      child: CompactEmptyState(
+        icon: Icons.qr_code_2_outlined,
+        message: 'No data to display',
+        iconSize: size * 0.3,
+      ),
+    );
+  }
+}
+
+/// A card variant of QR display with additional information
+class QrDisplayCard extends StatelessWidget {
+  /// The data to encode
+  final String? data;
+
+  /// Optional title to display above QR code
+  final String? title;
+
+  /// Optional subtitle/description
+  final String? subtitle;
+
+  /// Size of the QR code
+  final double qrSize;
+
+  /// Custom colors
+  final Color? qrForegroundColor;
+  final Color? qrBackgroundColor;
+
+  /// Optional actions (e.g., share, download buttons)
+  final List<Widget>? actions;
+
+  const QrDisplayCard({
+    super.key,
+    required this.data,
+    this.title,
+    this.subtitle,
+    this.qrSize = 200,
+    this.qrForegroundColor,
+    this.qrBackgroundColor,
+    this.actions,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Card(
+      elevation: 2,
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Title and subtitle
+            if (title != null) ...[
+              Text(
+                title!,
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+            ],
+            if (subtitle != null) ...[
+              Text(
+                subtitle!,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+            ],
+
+            // QR Code
+            QrDisplay(
+              data: data,
+              size: qrSize,
+              foregroundColor: qrForegroundColor,
+              backgroundColor: qrBackgroundColor,
+              showContainer: true,
+              showElevation: false,
+            ),
+
+            // Actions
+            if (actions != null && actions!.isNotEmpty) ...[
+              const SizedBox(height: 24),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                alignment: WrapAlignment.center,
+                children: actions!,
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// A minimal QR display for list items
+class QrDisplayListTile extends StatelessWidget {
+  /// The data to encode
+  final String data;
+
+  /// Leading text/title
+  final String title;
+
+  /// Optional subtitle
+  final String? subtitle;
+
+  /// Tap callback
+  final VoidCallback? onTap;
+
+  /// QR code size (small for list items)
+  final double qrSize;
+
+  const QrDisplayListTile({
+    super.key,
+    required this.data,
+    required this.title,
+    this.subtitle,
+    this.onTap,
+    this.qrSize = 60,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      leading: QrDisplay.thumbnail(
+        data: data,
+      ),
+      title: Text(title),
+      subtitle: subtitle != null ? Text(subtitle!) : null,
+      trailing: const Icon(Icons.chevron_right),
+      onTap: onTap,
+    );
+  }
+}

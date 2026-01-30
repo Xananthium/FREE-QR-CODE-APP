@@ -1,0 +1,417 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:barcode_app/core/utils/wifi_formatter.dart';
+import 'package:barcode_app/models/wifi_config.dart';
+
+void main() {
+  group('WifiFormatter.formatToQRString', () {
+    test('formats WPA2 network correctly', () {
+      final config = WifiConfig(
+        ssid: 'MyNetwork',
+        password: 'password123',
+        securityType: SecurityType.wpa2,
+        isHidden: false,
+      );
+
+      final result = WifiFormatter.formatToQRString(config);
+
+      expect(result, 'WIFI:T:WPA2;S:MyNetwork;P:password123;H:false;;');
+    });
+
+    test('formats WPA network correctly', () {
+      final config = WifiConfig(
+        ssid: 'TestWPA',
+        password: 'wpapass',
+        securityType: SecurityType.wpa,
+        isHidden: false,
+      );
+
+      final result = WifiFormatter.formatToQRString(config);
+
+      expect(result, 'WIFI:T:WPA;S:TestWPA;P:wpapass;H:false;;');
+    });
+
+    test('formats WPA3 network correctly', () {
+      final config = WifiConfig(
+        ssid: 'SecureNetwork',
+        password: 'wpa3secure',
+        securityType: SecurityType.wpa3,
+        isHidden: true,
+      );
+
+      final result = WifiFormatter.formatToQRString(config);
+
+      expect(result, 'WIFI:T:WPA3;S:SecureNetwork;P:wpa3secure;H:true;;');
+    });
+
+    test('formats WEP network correctly', () {
+      final config = WifiConfig(
+        ssid: 'LegacyWEP',
+        password: '12345',
+        securityType: SecurityType.wep,
+        isHidden: false,
+      );
+
+      final result = WifiFormatter.formatToQRString(config);
+
+      expect(result, 'WIFI:T:WEP;S:LegacyWEP;P:12345;H:false;;');
+    });
+
+    test('formats open network correctly (no password)', () {
+      final config = WifiConfig(
+        ssid: 'OpenNetwork',
+        password: null,
+        securityType: SecurityType.none,
+        isHidden: false,
+      );
+
+      final result = WifiFormatter.formatToQRString(config);
+
+      expect(result, 'WIFI:T:nopass;S:OpenNetwork;P:;H:false;;');
+    });
+
+    test('formats hidden network correctly', () {
+      final config = WifiConfig(
+        ssid: 'HiddenNet',
+        password: 'secretpass',
+        securityType: SecurityType.wpa2,
+        isHidden: true,
+      );
+
+      final result = WifiFormatter.formatToQRString(config);
+
+      expect(result, 'WIFI:T:WPA2;S:HiddenNet;P:secretpass;H:true;;');
+    });
+
+    test('escapes semicolon in SSID', () {
+      final config = WifiConfig(
+        ssid: 'Net;work',
+        password: 'pass123',
+        securityType: SecurityType.wpa2,
+        isHidden: false,
+      );
+
+      final result = WifiFormatter.formatToQRString(config);
+
+      expect(result, r'WIFI:T:WPA2;S:Net\;work;P:pass123;H:false;;');
+    });
+
+    test('escapes colon in SSID', () {
+      final config = WifiConfig(
+        ssid: 'Coffee:Shop',
+        password: 'pass123',
+        securityType: SecurityType.wpa2,
+        isHidden: false,
+      );
+
+      final result = WifiFormatter.formatToQRString(config);
+
+      expect(result, r'WIFI:T:WPA2;S:Coffee\:Shop;P:pass123;H:false;;');
+    });
+
+    test('escapes comma in password', () {
+      final config = WifiConfig(
+        ssid: 'Network',
+        password: 'pass,word',
+        securityType: SecurityType.wpa2,
+        isHidden: false,
+      );
+
+      final result = WifiFormatter.formatToQRString(config);
+
+      expect(result, r'WIFI:T:WPA2;S:Network;P:pass\,word;H:false;;');
+    });
+
+    test('escapes backslash in password', () {
+      final config = WifiConfig(
+        ssid: 'Network',
+        password: r'pass\word',
+        securityType: SecurityType.wpa2,
+        isHidden: false,
+      );
+
+      final result = WifiFormatter.formatToQRString(config);
+
+      expect(result, r'WIFI:T:WPA2;S:Network;P:pass\\word;H:false;;');
+    });
+
+    test('escapes double quote in SSID', () {
+      final config = WifiConfig(
+        ssid: 'Net"work',
+        password: 'pass123',
+        securityType: SecurityType.wpa2,
+        isHidden: false,
+      );
+
+      final result = WifiFormatter.formatToQRString(config);
+
+      expect(result, r'WIFI:T:WPA2;S:Net\"work;P:pass123;H:false;;');
+    });
+
+    test('escapes multiple special characters', () {
+      final config = WifiConfig(
+        ssid: r'Caf\e;:,"Shop',
+        password: r'pa\ss;:,"word',
+        securityType: SecurityType.wpa2,
+        isHidden: false,
+      );
+
+      final result = WifiFormatter.formatToQRString(config);
+
+      expect(
+        result,
+        r'WIFI:T:WPA2;S:Caf\\e\;\:\,\"Shop;P:pa\\ss\;\:\,\"word;H:false;;',
+      );
+    });
+  });
+
+  group('WifiFormatter.escapeSpecialChars', () {
+    test('escapes backslash', () {
+      expect(WifiFormatter.escapeSpecialChars(r'test\string'), r'test\\string');
+    });
+
+    test('escapes semicolon', () {
+      expect(WifiFormatter.escapeSpecialChars('test;string'), r'test\;string');
+    });
+
+    test('escapes colon', () {
+      expect(WifiFormatter.escapeSpecialChars('test:string'), r'test\:string');
+    });
+
+    test('escapes comma', () {
+      expect(WifiFormatter.escapeSpecialChars('test,string'), r'test\,string');
+    });
+
+    test('escapes double quote', () {
+      expect(WifiFormatter.escapeSpecialChars('test"string'), r'test\"string');
+    });
+
+    test('escapes all special characters in order', () {
+      // Input: \;:,"
+      // After escaping \ → \\: \\ 
+      // After escaping ; → \;: \\;
+      // After escaping : → \:: \\;\:
+      // After escaping , → \,: \\;\:\,
+      // After escaping " → \": \\;\:\,\"
+      expect(
+        WifiFormatter.escapeSpecialChars(r'\;:,"'),
+        r'\\\;\:\,\"',
+      );
+    });
+
+    test('returns empty string for empty input', () {
+      expect(WifiFormatter.escapeSpecialChars(''), '');
+    });
+
+    test('returns unchanged string with no special chars', () {
+      expect(WifiFormatter.escapeSpecialChars('NormalString123'), 'NormalString123');
+    });
+  });
+
+  group('WifiFormatter.unescapeSpecialChars', () {
+    test('unescapes backslash', () {
+      expect(WifiFormatter.unescapeSpecialChars(r'test\\string'), r'test\string');
+    });
+
+    test('unescapes semicolon', () {
+      expect(WifiFormatter.unescapeSpecialChars(r'test\;string'), 'test;string');
+    });
+
+    test('unescapes colon', () {
+      expect(WifiFormatter.unescapeSpecialChars(r'test\:string'), 'test:string');
+    });
+
+    test('unescapes comma', () {
+      expect(WifiFormatter.unescapeSpecialChars(r'test\,string'), 'test,string');
+    });
+
+    test('unescapes double quote', () {
+      expect(WifiFormatter.unescapeSpecialChars(r'test\"string'), 'test"string');
+    });
+
+    test('unescapes all special characters', () {
+      // Input: \\;\:\,\"
+      // After unescaping \:: \\;\,\"
+      // After unescaping \,: \\;,\"
+      // After unescaping \;: \;,\"
+      // After unescaping \": \;,"
+      // After unescaping \\: \;,"
+      expect(
+        WifiFormatter.unescapeSpecialChars(r'\\;\:\,\"'),
+        r'\;:,"',
+      );
+    });
+
+    test('returns empty string for empty input', () {
+      expect(WifiFormatter.unescapeSpecialChars(''), '');
+    });
+  });
+
+  group('WifiFormatter.parseFromQRString', () {
+    test('parses WPA2 network correctly', () {
+      final config = WifiFormatter.parseFromQRString(
+        'WIFI:T:WPA2;S:MyNetwork;P:password123;H:false;;',
+      );
+
+      expect(config, isNotNull);
+      expect(config!.ssid, 'MyNetwork');
+      expect(config.password, 'password123');
+      expect(config.securityType, SecurityType.wpa2);
+      expect(config.isHidden, false);
+    });
+
+    test('parses WPA network correctly', () {
+      final config = WifiFormatter.parseFromQRString(
+        'WIFI:T:WPA;S:TestWPA;P:wpapass;H:false;;',
+      );
+
+      expect(config, isNotNull);
+      expect(config!.securityType, SecurityType.wpa);
+    });
+
+    test('parses WPA3 network correctly', () {
+      final config = WifiFormatter.parseFromQRString(
+        'WIFI:T:WPA3;S:SecureNet;P:wpa3pass;H:true;;',
+      );
+
+      expect(config, isNotNull);
+      expect(config!.securityType, SecurityType.wpa3);
+      expect(config.isHidden, true);
+    });
+
+    test('parses WEP network correctly', () {
+      final config = WifiFormatter.parseFromQRString(
+        'WIFI:T:WEP;S:LegacyNet;P:12345;H:false;;',
+      );
+
+      expect(config, isNotNull);
+      expect(config!.securityType, SecurityType.wep);
+    });
+
+    test('parses open network correctly', () {
+      final config = WifiFormatter.parseFromQRString(
+        'WIFI:T:nopass;S:OpenNet;P:;H:false;;',
+      );
+
+      expect(config, isNotNull);
+      expect(config!.securityType, SecurityType.none);
+      expect(config.password, null);
+    });
+
+    test('parses network with escaped semicolon', () {
+      final config = WifiFormatter.parseFromQRString(
+        r'WIFI:T:WPA2;S:Net\;work;P:pass123;H:false;;',
+      );
+
+      expect(config, isNotNull);
+      expect(config!.ssid, 'Net;work');
+    });
+
+    test('parses network with escaped colon', () {
+      final config = WifiFormatter.parseFromQRString(
+        r'WIFI:T:WPA2;S:Coffee\:Shop;P:pass123;H:false;;',
+      );
+
+      expect(config, isNotNull);
+      expect(config!.ssid, 'Coffee:Shop');
+    });
+
+    test('parses network with escaped comma', () {
+      final config = WifiFormatter.parseFromQRString(
+        r'WIFI:T:WPA2;S:Network;P:pass\,word;H:false;;',
+      );
+
+      expect(config, isNotNull);
+      expect(config!.password, 'pass,word');
+    });
+
+    test('returns null for invalid format (no WIFI: prefix)', () {
+      final config = WifiFormatter.parseFromQRString(
+        'INVALID:T:WPA2;S:Network;P:pass;H:false;;',
+      );
+
+      expect(config, isNull);
+    });
+
+    test('returns null for missing SSID', () {
+      final config = WifiFormatter.parseFromQRString(
+        'WIFI:T:WPA2;S:;P:password;H:false;;',
+      );
+
+      expect(config, isNull);
+    });
+
+    test('defaults to WPA2 for unknown security type', () {
+      final config = WifiFormatter.parseFromQRString(
+        'WIFI:T:UNKNOWN;S:Network;P:pass;H:false;;',
+      );
+
+      expect(config, isNotNull);
+      expect(config!.securityType, SecurityType.wpa2);
+    });
+
+    test('handles case-insensitive hidden flag', () {
+      final config1 = WifiFormatter.parseFromQRString(
+        'WIFI:T:WPA2;S:Network;P:pass;H:TRUE;;',
+      );
+      final config2 = WifiFormatter.parseFromQRString(
+        'WIFI:T:WPA2;S:Network;P:pass;H:True;;',
+      );
+
+      expect(config1!.isHidden, true);
+      expect(config2!.isHidden, true);
+    });
+  });
+
+  group('WifiFormatter roundtrip', () {
+    test('format and parse roundtrip preserves data', () {
+      final original = WifiConfig(
+        ssid: 'MyNetwork',
+        password: 'password123',
+        securityType: SecurityType.wpa2,
+        isHidden: true,
+      );
+
+      final qrString = WifiFormatter.formatToQRString(original);
+      final parsed = WifiFormatter.parseFromQRString(qrString);
+
+      expect(parsed, isNotNull);
+      expect(parsed!.ssid, original.ssid);
+      expect(parsed.password, original.password);
+      expect(parsed.securityType, original.securityType);
+      expect(parsed.isHidden, original.isHidden);
+    });
+
+    test('roundtrip with special characters in SSID and password', () {
+      final original = WifiConfig(
+        ssid: r'Caf\e;:,"Shop',
+        password: r'pa\ss;:,"word',
+        securityType: SecurityType.wpa2,
+        isHidden: false,
+      );
+
+      final qrString = WifiFormatter.formatToQRString(original);
+      final parsed = WifiFormatter.parseFromQRString(qrString);
+
+      expect(parsed, isNotNull);
+      expect(parsed!.ssid, original.ssid);
+      expect(parsed.password, original.password);
+    });
+
+    test('roundtrip with all security types', () {
+      for (final securityType in SecurityType.values) {
+        final original = WifiConfig(
+          ssid: 'TestNet',
+          password: securityType.requiresPassword ? 'password123' : null,
+          securityType: securityType,
+          isHidden: false,
+        );
+
+        final qrString = WifiFormatter.formatToQRString(original);
+        final parsed = WifiFormatter.parseFromQRString(qrString);
+
+        expect(parsed, isNotNull, reason: 'Failed for $securityType');
+        expect(parsed!.securityType, securityType, reason: 'Security type mismatch for $securityType');
+      }
+    });
+  });
+}

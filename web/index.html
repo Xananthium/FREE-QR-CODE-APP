@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Eclipse - QR Code Generator</title>
+
+    <!-- QR Code Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            /* Museum Dark Theme */
+            --gallery-black: #0A0A0B;
+            --gallery-surface: #121214;
+            --gallery-card: #1A1A1C;
+            --museum-gold: #D4AF37;
+            --eclipse-slate: #556270;
+            --eclipse-bronze: #8B6F47;
+            --text-primary: #E8E6E3;
+            --text-secondary: #B8B6B3;
+            --text-muted: #6B6B6B;
+
+            /* Fonts */
+            --font-serif: 'Playfair Display', serif;
+            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background: var(--gallery-black);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Eclipse Watermarks */
+        .watermark {
+            position: fixed;
+            pointer-events: none;
+            opacity: 0.02;
+            z-index: 0;
+        }
+
+        .watermark-1 {
+            top: -100px;
+            right: -100px;
+            width: 400px;
+            height: 400px;
+        }
+
+        .watermark-2 {
+            bottom: -150px;
+            left: -150px;
+            width: 500px;
+            height: 500px;
+        }
+
+        /* Container */
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            padding: 3rem 0 2rem;
+        }
+
+        .logo-circle {
+            width: 140px;
+            height: 140px;
+            margin: 0 auto 2rem;
+            background: radial-gradient(circle, var(--gallery-card), var(--gallery-surface));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow:
+                0 0 60px rgba(212, 175, 55, 0.3),
+                0 20px 40px rgba(0, 0, 0, 0.3);
+            animation: fadeInScale 1.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+            padding: 24px;
+        }
+
+        .logo-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0 4px 12px rgba(212, 175, 55, 0.3));
+        }
+
+        h1 {
+            font-family: var(--font-serif);
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.5px;
+            animation: fadeInUp 0.8s ease-out 0.4s backwards;
+        }
+
+        .subtitle {
+            font-size: 1.125rem;
+            color: var(--text-secondary);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-weight: 400;
+            animation: fadeInUp 0.8s ease-out 0.6s backwards;
+        }
+
+        /* Carousel Container */
+        .carousel-wrapper {
+            margin: 3rem 0;
+            animation: fadeInUp 0.8s ease-out 0.8s backwards;
+        }
+
+        .carousel-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .carousel-title {
+            font-family: var(--font-serif);
+            font-size: 2rem;
+            color: var(--museum-gold);
+            margin-bottom: 0.5rem;
+        }
+
+        .carousel-hint {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            letter-spacing: 1px;
+        }
+
+        /* Carousel Navigation */
+        .carousel-nav {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .nav-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .nav-dot.active {
+            background: var(--museum-gold);
+            width: 24px;
+            border-radius: 4px;
+        }
+
+        /* Carousel Container */
+        .carousel-container {
+            position: relative;
+            overflow: hidden;
+            touch-action: pan-y;
+            user-select: none;
+        }
+
+        .carousel-track {
+            display: flex;
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .carousel-slide {
+            min-width: 100%;
+            padding: 0 1rem;
+        }
+
+        /* QR Type Card */
+        .qr-card {
+            background: linear-gradient(135deg, var(--gallery-card), rgba(26, 26, 28, 0.8));
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 2.5rem 2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 1.5rem;
+            background: linear-gradient(135deg, var(--eclipse-slate), var(--eclipse-bronze));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            box-shadow:
+                0 8px 16px rgba(85, 98, 112, 0.3),
+                0 0 20px rgba(85, 98, 112, 0.2);
+        }
+
+        .qr-card h3 {
+            font-family: var(--font-sans);
+            font-size: 1.5rem;
+            font-weight: 600;
+            letter-spacing: 0.2px;
+            color: var(--text-primary);
+            margin-bottom: 2rem;
+        }
+
+        /* Form */
+        .form-group {
+            margin-bottom: 1.5rem;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            letter-spacing: 0.5px;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            background: var(--gallery-surface);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-family: var(--font-sans);
+            font-size: 0.9375rem;
+            transition: all 0.2s;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: var(--museum-gold);
+            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        /* Button */
+        .btn {
+            background: linear-gradient(135deg, var(--eclipse-slate), var(--eclipse-bronze));
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-family: var(--font-sans);
+            font-size: 0.9375rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(85, 98, 112, 0.3);
+            width: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(85, 98, 112, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        /* QR Preview */
+        .qr-preview {
+            margin: 2rem 0;
+            text-align: center;
+            display: none;
+        }
+
+        .qr-preview.visible {
+            display: block;
+        }
+
+        #qrcode {
+            display: inline-block;
+            padding: 2rem;
+            background: white;
+            border-radius: 16px;
+            box-shadow:
+                0 20px 60px rgba(0, 0, 0, 0.3),
+                0 0 40px rgba(212, 175, 55, 0.2);
+        }
+
+        #qrcode canvas {
+            display: block !important;
+        }
+
+        .download-btn {
+            margin-top: 1.5rem;
+            background: var(--museum-gold);
+            color: var(--gallery-black);
+        }
+
+        .download-btn:hover {
+            background: #E8C458;
+        }
+
+        /* Carousel Arrows */
+        .carousel-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            z-index: 10;
+            color: var(--text-primary);
+            font-size: 1.5rem;
+        }
+
+        .carousel-arrow:hover {
+            background: rgba(212, 175, 55, 0.2);
+            border-color: var(--museum-gold);
+        }
+
+        .carousel-arrow.left {
+            left: -60px;
+        }
+
+        .carousel-arrow.right {
+            right: -60px;
+        }
+
+        @media (max-width: 900px) {
+            .carousel-arrow.left {
+                left: 10px;
+            }
+            .carousel-arrow.right {
+                right: 10px;
+            }
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 3rem 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            margin-top: 4rem;
+            animation: fadeInUp 0.8s ease-out 1.0s backwards;
+        }
+
+        footer p {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        footer a {
+            color: var(--museum-gold);
+            text-decoration: none;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            transition: color 0.2s;
+        }
+
+        footer a:hover {
+            color: #E8C458;
+            text-decoration: underline;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeInScale {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            .container {
+                padding: 1rem;
+            }
+
+            .carousel-slide {
+                padding: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Eclipse Watermarks - Tilted Ellipses -->
+    <svg class="watermark watermark-1" viewBox="0 0 400 400">
+        <ellipse cx="180" cy="200" rx="120" ry="80" fill="none" stroke="#D4AF37" stroke-width="8" transform="rotate(-25 180 200)"/>
+        <ellipse cx="220" cy="200" rx="120" ry="80" fill="none" stroke="#D4AF37" stroke-width="8" transform="rotate(25 220 200)"/>
+    </svg>
+
+    <svg class="watermark watermark-2" viewBox="0 0 500 500">
+        <ellipse cx="230" cy="250" rx="140" ry="90" fill="none" stroke="#556270" stroke-width="10" transform="rotate(-30 230 250)"/>
+        <ellipse cx="270" cy="250" rx="140" ry="90" fill="none" stroke="#556270" stroke-width="10" transform="rotate(30 270 250)"/>
+    </svg>
+
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <div class="logo-circle">
+                <img src="digilogoonly.png" alt="Digital Disconnections" class="logo-image">
+            </div>
+            <h1>Digital Eclipse</h1>
+            <p class="subtitle">QR Code Generator</p>
+        </header>
+
+        <!-- Carousel -->
+        <div class="carousel-wrapper">
+            <div class="carousel-header">
+                <h2 class="carousel-title" id="current-type">URL/Website</h2>
+                <p class="carousel-hint">← Swipe to change type →</p>
+            </div>
+
+            <!-- Navigation Dots -->
+            <div class="carousel-nav" id="nav-dots"></div>
+
+            <!-- Carousel Container -->
+            <div class="carousel-container" id="carousel">
+                <div class="carousel-arrow left" onclick="prevSlide()">‹</div>
+                <div class="carousel-arrow right" onclick="nextSlide()">›</div>
+
+                <div class="carousel-track" id="carousel-track">
+                    <!-- Slides will be inserted here -->
+                </div>
+            </div>
+
+            <!-- QR Preview -->
+            <div class="qr-preview" id="qr-preview">
+                <div id="qrcode"></div>
+                <button class="btn download-btn" onclick="downloadQR()">Download QR Code</button>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer>
+            <p>by <a href="https://digitaldisconnections.com" target="_blank">Digital Disconnections Inc.</a></p>
+            <p style="margin-top: 0.5rem; font-size: 0.75rem;">"You shouldn't have to rent your own phone."</p>
+        </footer>
+    </div>
+
+    <script>
+        const qrTypes = [
+            {
+                id: 'url',
+                title: 'URL/Website',
+                icon: '🔗',
+                fields: `
+                    <div class="form-group">
+                        <label>Website URL</label>
+                        <input type="url" id="url" placeholder="https://example.com" required>
+                    </div>
+                `
+            },
+            {
+                id: 'wifi',
+                title: 'WiFi Network',
+                icon: '📶',
+                fields: `
+                    <div class="form-group">
+                        <label>Network Name (SSID)</label>
+                        <input type="text" id="ssid" placeholder="MyWiFi" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="text" id="password" placeholder="********" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Security Type</label>
+                        <select id="security" required>
+                            <option value="WPA">WPA/WPA2</option>
+                            <option value="WEP">WEP</option>
+                            <option value="nopass">None</option>
+                        </select>
+                    </div>
+                `
+            },
+            {
+                id: 'email',
+                title: 'Email',
+                icon: '✉️',
+                fields: `
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input type="email" id="email" placeholder="contact@example.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Subject</label>
+                        <input type="text" id="subject" placeholder="Hello!">
+                    </div>
+                    <div class="form-group">
+                        <label>Message</label>
+                        <textarea id="message" placeholder="Your message here..."></textarea>
+                    </div>
+                `
+            },
+            {
+                id: 'phone',
+                title: 'Phone',
+                icon: '📞',
+                fields: `
+                    <div class="form-group">
+                        <label>Phone Number</label>
+                        <input type="tel" id="phone" placeholder="+1234567890" required>
+                    </div>
+                `
+            },
+            {
+                id: 'sms',
+                title: 'SMS',
+                icon: '💬',
+                fields: `
+                    <div class="form-group">
+                        <label>Phone Number</label>
+                        <input type="tel" id="phone" placeholder="+1234567890" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Message</label>
+                        <textarea id="message" placeholder="Your message here..."></textarea>
+                    </div>
+                `
+            },
+            {
+                id: 'contact',
+                title: 'Contact/vCard',
+                icon: '👤',
+                fields: `
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <input type="text" id="name" placeholder="John Doe" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Phone</label>
+                        <input type="tel" id="phone" placeholder="+1234567890">
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="email" placeholder="john@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Company</label>
+                        <input type="text" id="company" placeholder="ACME Corp">
+                    </div>
+                `
+            },
+            {
+                id: 'location',
+                title: 'Location',
+                icon: '📍',
+                fields: `
+                    <div class="form-group">
+                        <label>Latitude</label>
+                        <input type="number" step="any" id="lat" placeholder="37.7749" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Longitude</label>
+                        <input type="number" step="any" id="lng" placeholder="-122.4194" required>
+                    </div>
+                `
+            }
+        ];
+
+        let currentSlide = 0;
+        let qrCodeInstance = null;
+        let startX = 0;
+        let isDragging = false;
+
+        // Initialize carousel
+        function initCarousel() {
+            const track = document.getElementById('carousel-track');
+            const navDots = document.getElementById('nav-dots');
+
+            // Create slides
+            qrTypes.forEach((type, index) => {
+                const slide = document.createElement('div');
+                slide.className = 'carousel-slide';
+                slide.innerHTML = `
+                    <div class="qr-card">
+                        <div class="card-icon">${type.icon}</div>
+                        <h3>${type.title}</h3>
+                        <form class="qr-form" data-type="${type.id}" onsubmit="handleSubmit(event, '${type.id}')">
+                            ${type.fields}
+                            <button type="submit" class="btn">Generate QR Code</button>
+                        </form>
+                    </div>
+                `;
+                track.appendChild(slide);
+
+                // Create nav dot
+                const dot = document.createElement('div');
+                dot.className = 'nav-dot' + (index === 0 ? ' active' : '');
+                dot.onclick = () => goToSlide(index);
+                navDots.appendChild(dot);
+            });
+        }
+
+        function goToSlide(index) {
+            currentSlide = index;
+            const track = document.getElementById('carousel-track');
+            track.style.transform = `translateX(-${currentSlide * 100}%)`;
+
+            // Update nav dots
+            document.querySelectorAll('.nav-dot').forEach((dot, i) => {
+                dot.classList.toggle('active', i === currentSlide);
+            });
+
+            // Update title
+            document.getElementById('current-type').textContent = qrTypes[currentSlide].title;
+
+            // Hide QR preview
+            document.getElementById('qr-preview').classList.remove('visible');
+        }
+
+        function nextSlide() {
+            goToSlide((currentSlide + 1) % qrTypes.length);
+        }
+
+        function prevSlide() {
+            goToSlide((currentSlide - 1 + qrTypes.length) % qrTypes.length);
+        }
+
+        // Touch/drag support
+        const carousel = document.getElementById('carousel');
+
+        carousel.addEventListener('touchstart', (e) => {
+            startX = e.touches[0].clientX;
+            isDragging = true;
+        });
+
+        carousel.addEventListener('touchmove', (e) => {
+            if (!isDragging) return;
+        });
+
+        carousel.addEventListener('touchend', (e) => {
+            if (!isDragging) return;
+            isDragging = false;
+
+            const endX = e.changedTouches[0].clientX;
+            const diff = startX - endX;
+
+            if (Math.abs(diff) > 50) {
+                if (diff > 0) {
+                    nextSlide();
+                } else {
+                    prevSlide();
+                }
+            }
+        });
+
+        // Mouse drag
+        carousel.addEventListener('mousedown', (e) => {
+            startX = e.clientX;
+            isDragging = true;
+        });
+
+        carousel.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+        });
+
+        carousel.addEventListener('mouseup', (e) => {
+            if (!isDragging) return;
+            isDragging = false;
+
+            const endX = e.clientX;
+            const diff = startX - endX;
+
+            if (Math.abs(diff) > 50) {
+                if (diff > 0) {
+                    nextSlide();
+                } else {
+                    prevSlide();
+                }
+            }
+        });
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') prevSlide();
+            if (e.key === 'ArrowRight') nextSlide();
+        });
+
+        // Handle form submission
+        function handleSubmit(event, type) {
+            event.preventDefault();
+
+            let qrData = '';
+
+            switch(type) {
+                case 'url':
+                    qrData = document.getElementById('url').value;
+                    break;
+
+                case 'wifi':
+                    const ssid = document.getElementById('ssid').value;
+                    const password = document.getElementById('password').value;
+                    const security = document.getElementById('security').value;
+                    qrData = `WIFI:T:${security};S:${ssid};P:${password};;`;
+                    break;
+
+                case 'email':
+                    const emailAddr = document.getElementById('email').value;
+                    const subject = document.getElementById('subject').value || '';
+                    const message = document.getElementById('message').value || '';
+                    qrData = `mailto:${emailAddr}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(message)}`;
+                    break;
+
+                case 'phone':
+                    qrData = `tel:${document.getElementById('phone').value}`;
+                    break;
+
+                case 'sms':
+                    const smsPhone = document.getElementById('phone').value;
+                    const smsMessage = document.getElementById('message').value || '';
+                    qrData = `sms:${smsPhone}?body=${encodeURIComponent(smsMessage)}`;
+                    break;
+
+                case 'contact':
+                    const name = document.getElementById('name').value;
+                    const phone = document.getElementById('phone').value || '';
+                    const email = document.getElementById('email').value || '';
+                    const company = document.getElementById('company').value || '';
+                    qrData = `BEGIN:VCARD\nVERSION:3.0\nFN:${name}\nTEL:${phone}\nEMAIL:${email}\nORG:${company}\nEND:VCARD`;
+                    break;
+
+                case 'location':
+                    const lat = document.getElementById('lat').value;
+                    const lng = document.getElementById('lng').value;
+                    qrData = `geo:${lat},${lng}`;
+                    break;
+            }
+
+            // Clear previous QR code
+            document.getElementById('qrcode').innerHTML = '';
+
+            // Generate new QR code
+            qrCodeInstance = new QRCode(document.getElementById('qrcode'), {
+                text: qrData,
+                width: 256,
+                height: 256,
+                colorDark: '#000000',
+                colorLight: '#ffffff',
+                correctLevel: QRCode.CorrectLevel.H
+            });
+
+            // Show preview
+            document.getElementById('qr-preview').classList.add('visible');
+            document.getElementById('qr-preview').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        // Download QR code
+        function downloadQR() {
+            const canvas = document.querySelector('#qrcode canvas');
+            const url = canvas.toDataURL('image/png');
+            const link = document.createElement('a');
+            link.download = `qr-code-${qrTypes[currentSlide].id}-${Date.now()}.png`;
+            link.href = url;
+            link.click();
+        }
+
+        // Initialize on load
+        initCarousel();
+    </script>
+</body>
+</html>

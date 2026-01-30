@@ -1,0 +1,63 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:provider/provider.dart';
+import 'package:barcode_app/screens/customize_screen.dart';
+import 'package:barcode_app/providers/qr_provider.dart';
+import 'package:barcode_app/widgets/empty_state.dart';
+
+void main() {
+  group('CustomizeScreen Tests', () {
+    testWidgets('shows empty state when no QR data exists', (WidgetTester tester) async {
+      final qrProvider = QRProvider();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ChangeNotifierProvider.value(
+            value: qrProvider,
+            child: const CustomizeScreen(),
+          ),
+        ),
+      );
+
+      // Should show empty state
+      expect(find.byType(EmptyState), findsOneWidget);
+      expect(find.text('No QR Code Yet'), findsOneWidget);
+      expect(find.text('Select a type from the home screen to create your first QR code'), findsOneWidget);
+    });
+
+    testWidgets('shows content when QR data exists', (WidgetTester tester) async {
+      final qrProvider = QRProvider();
+      await qrProvider.generateQRCode('https://example.com');
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ChangeNotifierProvider.value(
+            value: qrProvider,
+            child: const CustomizeScreen(),
+          ),
+        ),
+      );
+
+      // Should NOT show empty state
+      expect(find.byType(EmptyState), findsNothing);
+      
+      // Should show placeholder content
+      expect(find.text('Customize Interface - Coming Soon'), findsOneWidget);
+    });
+
+    testWidgets('has correct app bar title', (WidgetTester tester) async {
+      final qrProvider = QRProvider();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ChangeNotifierProvider.value(
+            value: qrProvider,
+            child: const CustomizeScreen(),
+          ),
+        ),
+      );
+
+      expect(find.text('Customize QR Code'), findsOneWidget);
+    });
+  });
+}

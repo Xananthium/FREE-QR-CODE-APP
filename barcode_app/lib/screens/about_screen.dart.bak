@@ -1,0 +1,417 @@
+import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../core/animations/widget_animations.dart';
+import '../core/animations/animation_constants.dart';
+import '../core/utils/responsive.dart';
+
+/// About screen - Displays the app's story, mission, and features
+///
+/// This screen tells the personal story behind the app's creation,
+/// explains the mission, and lists key features that make this app different.
+class AboutScreen extends StatelessWidget {
+  const AboutScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final responsive = context.responsive;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('About'),
+        backgroundColor: colorScheme.surface,
+        elevation: 0,
+      ),
+      body: SafeArea(
+        child: ResponsiveCenter(
+          child: SingleChildScrollView(
+            padding: responsive.horizontalPadding,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(height: responsive.spacing * 2),
+
+                // App Icon
+                FadeSlideIn(
+                  delay: Duration.zero,
+                  child: Center(
+                    child: Container(
+                      width: responsive.value(
+                        phone: 80.0,
+                        tablet: 100.0,
+                        desktop: 120.0,
+                      ),
+                      height: responsive.value(
+                        phone: 80.0,
+                        tablet: 100.0,
+                        desktop: 120.0,
+                      ),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            colorScheme.primary,
+                            colorScheme.secondary,
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: colorScheme.primary.withValues(alpha: 0.3),
+                            blurRadius: 20,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
+                      ),
+                      child: Icon(
+                        Icons.qr_code_2_rounded,
+                        size: responsive.value(
+                          phone: 48.0,
+                          tablet: 60.0,
+                          desktop: 72.0,
+                        ),
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+
+                SizedBox(height: responsive.spacing * 3),
+
+                // The Story Section
+                StaggeredAnimation(
+                  index: 1,
+                  baseDelay: const Duration(milliseconds: 100),
+                  child: _buildSectionCard(
+                    context: context,
+                    colorScheme: colorScheme,
+                    responsive: responsive,
+                    icon: Icons.history_edu_rounded,
+                    title: 'The Story',
+                    child: Text(
+                      '"It was my daughter\'s sixth birthday party. I thought it would be cute to put a QR code on the flyers with the Google map link. I went to a website that said it was free. Great, made it, put it on the flyer. Three days later I got an email saying that if I wanted the code to stay active, I needed to buy a yearly membership for \$30. Needless to say I did not buy the membership and I got a bunch of calls saying the QR code didn\'t work. Never again."',
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        color: colorScheme.onSurface,
+                        fontSize: responsive.value(
+                          phone: 15.0,
+                          tablet: 17.0,
+                          desktop: 18.0,
+                        ),
+                        height: 1.6,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ),
+                ),
+
+                SizedBox(height: responsive.cardSpacing),
+
+                // Mission Section
+                StaggeredAnimation(
+                  index: 2,
+                  baseDelay: const Duration(milliseconds: 100),
+                  child: _buildSectionCard(
+                    context: context,
+                    colorScheme: colorScheme,
+                    responsive: responsive,
+                    icon: Icons.rocket_launch_rounded,
+                    title: 'Mission',
+                    highlighted: true,
+                    child: Text(
+                      '"You shouldn\'t have to rent your own phone."',
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        color: colorScheme.primary,
+                        fontSize: responsive.value(
+                          phone: 20.0,
+                          tablet: 24.0,
+                          desktop: 28.0,
+                        ),
+                        fontWeight: FontWeight.bold,
+                        height: 1.4,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+
+                SizedBox(height: responsive.cardSpacing),
+
+                // Features Section
+                StaggeredAnimation(
+                  index: 3,
+                  baseDelay: const Duration(milliseconds: 100),
+                  child: _buildSectionCard(
+                    context: context,
+                    colorScheme: colorScheme,
+                    responsive: responsive,
+                    icon: Icons.check_circle_outline_rounded,
+                    title: 'What Makes Us Different',
+                    child: Column(
+                      children: [
+                        _buildFeatureRow(
+                          context: context,
+                          colorScheme: colorScheme,
+                          responsive: responsive,
+                          icon: Icons.money_off_rounded,
+                          text: 'Free forever',
+                        ),
+                        SizedBox(height: responsive.spacing),
+                        _buildFeatureRow(
+                          context: context,
+                          colorScheme: colorScheme,
+                          responsive: responsive,
+                          icon: Icons.block_rounded,
+                          text: 'No subscriptions',
+                        ),
+                        SizedBox(height: responsive.spacing),
+                        _buildFeatureRow(
+                          context: context,
+                          colorScheme: colorScheme,
+                          responsive: responsive,
+                          icon: Icons.privacy_tip_outlined,
+                          text: 'No data collection',
+                        ),
+                        SizedBox(height: responsive.spacing),
+                        _buildFeatureRow(
+                          context: context,
+                          colorScheme: colorScheme,
+                          responsive: responsive,
+                          icon: Icons.no_accounts_rounded,
+                          text: 'No ads',
+                        ),
+                        SizedBox(height: responsive.spacing),
+                        _buildFeatureRow(
+                          context: context,
+                          colorScheme: colorScheme,
+                          responsive: responsive,
+                          icon: Icons.offline_bolt_rounded,
+                          text: 'Works offline',
+                        ),
+                        SizedBox(height: responsive.spacing),
+                        _buildFeatureRow(
+                          context: context,
+                          colorScheme: colorScheme,
+                          responsive: responsive,
+                          icon: Icons.all_inclusive_rounded,
+                          text: 'QR codes never expire',
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                SizedBox(height: responsive.cardSpacing),
+
+                // Links Section
+                StaggeredAnimation(
+                  index: 4,
+                  baseDelay: const Duration(milliseconds: 100),
+                  child: _buildSectionCard(
+                    context: context,
+                    colorScheme: colorScheme,
+                    responsive: responsive,
+                    icon: Icons.link_rounded,
+                    title: 'Learn More',
+                    child: Column(
+                      children: [
+                        _buildLinkButton(
+                          context: context,
+                          colorScheme: colorScheme,
+                          responsive: responsive,
+                          icon: Icons.language_rounded,
+                          text: 'Visit Our Website',
+                          url: 'https://digitaldisconnections.com',
+                        ),
+                        SizedBox(height: responsive.spacing),
+                        _buildLinkButton(
+                          context: context,
+                          colorScheme: colorScheme,
+                          responsive: responsive,
+                          icon: Icons.code_rounded,
+                          text: 'View on GitHub',
+                          url: 'https://github.com/Digital-Disconnections-LTD/qr-generator',
+                        ),
+                        SizedBox(height: responsive.spacing),
+                        _buildLinkButton(
+                          context: context,
+                          colorScheme: colorScheme,
+                          responsive: responsive,
+                          icon: Icons.policy_rounded,
+                          text: 'Privacy Policy',
+                          url: 'https://digitaldisconnections.com/privacy',
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                SizedBox(height: responsive.spacing * 3),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Build a section card with icon, title, and content
+  Widget _buildSectionCard({
+    required BuildContext context,
+    required ColorScheme colorScheme,
+    required Responsive responsive,
+    required IconData icon,
+    required String title,
+    required Widget child,
+    bool highlighted = false,
+  }) {
+    final theme = Theme.of(context);
+
+    return Card(
+      elevation: highlighted ? 4 : 2,
+      color: highlighted
+          ? colorScheme.primaryContainer
+          : colorScheme.surfaceContainerHighest,
+      child: Padding(
+        padding: responsive.padding * 1.5,
+        child: Column(
+          crossAxisAlignment:
+              highlighted ? CrossAxisAlignment.center : CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: highlighted
+                  ? MainAxisAlignment.center
+                  : MainAxisAlignment.start,
+              children: [
+                Icon(
+                  icon,
+                  color: highlighted
+                      ? colorScheme.primary
+                      : colorScheme.onSurfaceVariant,
+                  size: responsive.iconSize,
+                ),
+                SizedBox(width: responsive.spacing),
+                Text(
+                  title,
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: highlighted
+                        ? colorScheme.onPrimaryContainer
+                        : colorScheme.onSurface,
+                    fontSize: responsive.value(
+                      phone: 20.0,
+                      tablet: 22.0,
+                      desktop: 24.0,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: responsive.spacing * 1.5),
+            child,
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Build a feature row with icon and text
+  Widget _buildFeatureRow({
+    required BuildContext context,
+    required ColorScheme colorScheme,
+    required Responsive responsive,
+    required IconData icon,
+    required String text,
+  }) {
+    final theme = Theme.of(context);
+
+    return Row(
+      children: [
+        Icon(
+          icon,
+          color: colorScheme.primary,
+          size: responsive.iconSize * 0.83,
+        ),
+        SizedBox(width: responsive.spacing * 1.5),
+        Expanded(
+          child: Text(
+            text,
+            style: theme.textTheme.bodyLarge?.copyWith(
+              color: colorScheme.onSurface,
+              fontSize: responsive.value(
+                phone: 15.0,
+                tablet: 17.0,
+                desktop: 18.0,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Build a clickable link button
+  Widget _buildLinkButton({
+    required BuildContext context,
+    required ColorScheme colorScheme,
+    required Responsive responsive,
+    required IconData icon,
+    required String text,
+    required String url,
+  }) {
+    final theme = Theme.of(context);
+
+    return InkWell(
+      onTap: () => _launchUrl(url),
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: responsive.padding,
+        decoration: BoxDecoration(
+          color: colorScheme.surfaceContainerHigh,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: colorScheme.outline.withValues(alpha: 0.3),
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              color: colorScheme.primary,
+              size: responsive.iconSize * 0.83,
+            ),
+            SizedBox(width: responsive.spacing * 1.5),
+            Expanded(
+              child: Text(
+                text,
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: colorScheme.primary,
+                  fontSize: responsive.value(
+                    phone: 15.0,
+                    tablet: 17.0,
+                    desktop: 18.0,
+                  ),
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            Icon(
+              Icons.open_in_new_rounded,
+              color: colorScheme.onSurfaceVariant,
+              size: responsive.iconSize * 0.67,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Launch URL in external browser
+  Future<void> _launchUrl(String urlString) async {
+    final url = Uri.parse(urlString);
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url, mode: LaunchMode.externalApplication);
+    }
+  }
+}

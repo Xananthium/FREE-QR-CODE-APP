@@ -1,0 +1,45 @@
+# Border Frame Prompts for Z-Image Turbo
+# Format: output_name | prompt
+# Size: Use square (1024x1024) for borders
+
+# PUNK ROCK BORDERS (5 variants)
+punk_torn | Torn paper frame border with ripped edges, safety pins at corners, grunge texture, black and white with red accents, punk rock aesthetic, text "DIGITAL" at top corner in spray paint style, empty center space
+punk_pins | Border frame made of safety pins and chains, metallic silver, punk studs at corners, distressed texture, edgy design, empty center, text "REBEL" small at bottom
+punk_grunge | Grunge spray paint border frame, dripping paint effect, stencil text "NO RULES" at top, black white red color scheme, rough edges, punk rock style, clear center
+punk_anarchy | Punk rock border with anarchy symbols in corners, torn denim texture, safety pins, handwritten text "RESIST" at bottom, black background, white drips, square frame
+punk_chains | Chain link border frame, metallic punk aesthetic, padlock at top center, text "BREAK FREE" in bold letters, industrial look, dark metal texture, empty center space
+
+# CYBERPUNK BORDERS (5 variants)
+cyber_glitch | Cyberpunk border frame with neon blue pink glitch effects, digital corruption, circuit board pattern, text "CYBER" in futuristic font at top, holographic aesthetic, center empty
+cyber_neon | Neon border frame, bright pink cyan yellow lines, grid pattern, retro futuristic, text "FUTURE" at top in glowing letters, dark background, digital aesthetic, square empty center
+cyber_circuit | Circuit board border design, green electronic traces, microchip corners, text "CONNECTED" in digital font at bottom, tech aesthetic, metallic copper accents, center clear
+cyber_matrix | Matrix code border frame, falling green digital text around edges, text "THE MATRIX" at top in green, black background, cyberpunk aesthetic, square center empty
+cyber_holo | Holographic border frame, iridescent colors, glitch lines, vaporwave aesthetic, text "DIGITAL REALM" at top, pink cyan gradient, futuristic, center space empty
+
+# HARD/EDGY BORDERS (5 variants)
+edgy_skull | Border frame with stylized skull motifs in corners, lightning bolts on sides, text "DANGER" at top in bold, metallic silver black, edgy design, center clear
+edgy_lightning | Lightning bolt border frame, electric blue white, sharp angles, text "VOLTAGE" in jagged letters at top, high energy design, dark background, square empty center
+edgy_metal | Brushed metal border frame, industrial bolts in corners, text "INDUSTRIAL" at bottom, steel gray silver, rivets, mechanical aesthetic, center empty
+edgy_flame | Flame border design, orange red yellow fire around edges, text "INFERNO" at top in blazing font, dark background, intense aesthetic, square center
+edgy_blade | Sharp blade border frame, metallic silver edges, text "SHARP" at top corner, angular design, cold steel aesthetic, dark background, center clear
+
+# CREATURE BORDERS (original, NOT Pokémon) (5 variants)
+creature_blob | Border frame with cute blob creatures in corners, pastel colors, text "BLOBBY FRIENDS" at top, friendly monster aesthetic, round soft shapes, center space empty
+creature_plant | Plant creature border, cute venus flytrap monsters with smiling faces, green pink, text "GARDEN PALS" at top, botanical monster aesthetic, center clear
+creature_cloud | Cloud creature border frame, fluffy white monsters with happy faces in corners, sky blue background, text "SKY FRIENDS" at top, soft aesthetic, empty center
+creature_gem | Gem creature border, crystalline monsters with faceted bodies, rainbow colors, text "CRYSTAL BUDDIES" at top, sparkly magical aesthetic, square center empty
+creature_goo | Goo creature border frame, translucent slime monsters in corners, neon colors, text "SLIME SQUAD" at top, drippy fun aesthetic, center empty
+
+# CAT BORDERS (anime cats, cyber cats, punk cats) (5 variants)
+cat_anime | Anime cat border frame, cute cat faces in corners, pastel colors, text "NYAA" at top in kawaii font, cat paw prints around edges, center space empty
+cat_cyber | Cyberpunk cat border, neon cat silhouettes with glitch effects, pink cyan, text "CYBER CAT" at top in futuristic font, digital aesthetic, empty center
+cat_punk | Punk rock cat border frame, grunge cats with mohawks in corners, text "REBEL CATS" at top in spray paint, black white red, edgy feline design, center clear
+cat_galaxy | Space cat border, cosmic cats floating in starfield, purple blue pink nebula, text "COSMIC CATS" at top, sparkles, magical aesthetic, square center empty
+cat_ninja | Ninja cat border frame, stealthy cats in martial arts poses, black gray red, text "STEALTH MODE" at top, sharp angles, cool cat aesthetic, center empty
+
+# KAWAII BORDERS (original, NOT Hello Kitty) (5 variants)
+kawaii_stars | Kawaii border frame with pastel stars hearts clouds, soft pink purple blue, text "SPARKLE" at top in cute font, bows in corners, center space empty
+kawaii_bows | Border frame made of ribbons and bows, pastel pink white, text "SWEET" at top, delicate feminine aesthetic, soft shadows, square center empty
+kawaii_hearts | Heart border frame, pastel colors, small decorative hearts around edges, text "LOVE" at top in bubbly letters, soft pink aesthetic, center clear
+kawaii_sweets | Dessert border frame, cute pastel donuts cupcakes candies in corners, text "SWEET TREATS" at top, kawaii food aesthetic, center empty
+kawaii_flowers | Soft pastel flower border, cherry blossoms and daisies, pink white, text "BLOOM" at top in gentle font, delicate aesthetic, square empty center

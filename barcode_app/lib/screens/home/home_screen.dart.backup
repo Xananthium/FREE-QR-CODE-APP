@@ -1,0 +1,350 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../core/navigation/app_router.dart';
+import '../../core/animations/widget_animations.dart';
+import '../../core/animations/animation_constants.dart';
+import '../../core/utils/responsive.dart';
+import '../../providers/theme_provider.dart';
+import 'widgets/qr_type_card.dart';
+
+/// Home screen - Main landing page for the QR Code Generator
+///
+/// This is the entry point of the app where users can choose between
+/// generating URL QR codes or WiFi QR codes.
+/// 
+/// Features:
+/// - Beautiful app branding with logo
+/// - Two interactive cards for URL and WiFi generators
+/// - Dark mode toggle with rotation animation
+/// - About button for app information
+/// - Smooth entrance animations (logo bounce, staggered cards)
+/// - Fully responsive design for phone/tablet/desktop
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
+  late AnimationController _themeToggleController;
+  
+  @override
+  void initState() {
+    super.initState();
+    _themeToggleController = AnimationController(
+      duration: AnimationDurations.normal,
+      vsync: this,
+    );
+  }
+
+  @override
+  void dispose() {
+    _themeToggleController.dispose();
+    super.dispose();
+  }
+
+  void _toggleTheme(ThemeProvider provider) {
+    provider.toggleTheme();
+    if (provider.isDarkMode) {
+      _themeToggleController.forward();
+    } else {
+      _themeToggleController.reverse();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final themeProvider = context.watch<ThemeProvider>();
+    final responsive = context.responsive;
+
+    return Scaffold(
+      body: SafeArea(
+        child: ResponsiveCenter(
+          child: CustomScrollView(
+            slivers: [
+              // App Bar with about and theme toggle
+              SliverAppBar(
+                floating: true,
+                snap: true,
+                backgroundColor: colorScheme.surface,
+                elevation: 0,
+                actions: [
+                  // About button
+                  Padding(
+                    padding: EdgeInsets.only(right: responsive.spacing * 0.5),
+                    child: IconButton(
+                      icon: Icon(
+                        Icons.info_outline_rounded,
+                        size: responsive.iconSize,
+                      ),
+                      tooltip: 'About',
+                      onPressed: () => context.goToAbout(),
+                    ),
+                  ),
+                  // Theme toggle button
+                  Padding(
+                    padding: EdgeInsets.only(right: responsive.spacing),
+                    child: IconButton(
+                      icon: RotationTransition(
+                        turns: Tween<double>(begin: 0.0, end: 0.5)
+                            .animate(_themeToggleController),
+                        child: Icon(
+                          themeProvider.isDarkMode 
+                            ? Icons.light_mode_rounded 
+                            : Icons.dark_mode_rounded,
+                          size: responsive.iconSize,
+                        ),
+                      ),
+                      tooltip: themeProvider.isDarkMode ? 'Light Mode' : 'Dark Mode',
+                      onPressed: () => _toggleTheme(themeProvider),
+                    ),
+                  ),
+                ],
+              ),
+
+              // Main content
+              SliverList(
+                delegate: SliverChildListDelegate([
+                  Padding(
+                    padding: responsive.horizontalPadding,
+                    child: Column(
+                      children: [
+                        SizedBox(height: responsive.spacing * 2.5),
+
+                        // App Logo/Branding Section with bounce animation
+                        _buildBranding(context, colorScheme, responsive),
+
+                        SizedBox(height: responsive.cardSpacing * 1.5),
+
+                        // QR Type Cards with responsive layout
+                        _buildQRTypeCards(context, responsive),
+
+                        SizedBox(height: responsive.cardSpacing),
+
+                        // Footer hint with fade-in
+                        FadeSlideIn(
+                          delay: AnimationDurations.staggerDelay * 4,
+                          child: _buildFooter(context, colorScheme, responsive),
+                        ),
+
+                        SizedBox(height: responsive.spacing * 3),
+                      ],
+                    ),
+                  ),
+                ]),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Build app branding section with logo bounce animation and responsive sizing
+  Widget _buildBranding(BuildContext context, ColorScheme colorScheme, Responsive responsive) {
+    final logoSize = responsive.value(
+      phone: 100.0,
+      tablet: 120.0,
+      desktop: 140.0,
+    );
+    
+    final iconSize = responsive.value(
+      phone: 60.0,
+      tablet: 72.0,
+      desktop: 84.0,
+    );
+
+    return Column(
+      children: [
+        // QR Code Logo with bounce entrance
+        TweenAnimationBuilder<double>(
+          tween: Tween(begin: 0.0, end: 1.0),
+          duration: AnimationDurations.slow,
+          curve: AnimationCurves.bounce,
+          builder: (context, value, child) {
+            return Transform.scale(
+              scale: value,
+              child: Opacity(
+                opacity: value,
+                child: child,
+              ),
+            );
+          },
+          child: Container(
+            width: logoSize,
+            height: logoSize,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  colorScheme.primary,
+                  colorScheme.secondary,
+                ],
+              ),
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: colorScheme.primary.withValues(alpha: 0.3),
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            child: Icon(
+              Icons.qr_code_2_rounded,
+              size: iconSize,
+              color: Colors.white,
+            ),
+          ),
+        ),
+        SizedBox(height: responsive.spacing * 2.5),
+        
+        // App Title with fade-in after logo - responsive sizing
+        FadeSlideIn(
+          delay: const Duration(milliseconds: 300),
+          child: Text(
+            'QR Code Generator',
+            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: colorScheme.onSurface,
+              fontSize: responsive.value(
+                phone: 28.0,
+                tablet: 32.0,
+                desktop: 36.0,
+              ),
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ),
+        SizedBox(height: responsive.spacing),
+        
+        // Tagline with fade-in - responsive sizing
+        FadeSlideIn(
+          delay: const Duration(milliseconds: 400),
+          child: Text(
+            'Create custom QR codes instantly',
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+              fontSize: responsive.value(
+                phone: 16.0,
+                tablet: 18.0,
+                desktop: 20.0,
+              ),
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Build QR type selection cards with responsive layout
+  Widget _buildQRTypeCards(BuildContext context, Responsive responsive) {
+    final colorScheme = Theme.of(context).colorScheme;
+    
+    // Use ResponsiveRowColumn for automatic layout switching
+    return ResponsiveRowColumn(
+      spacing: responsive.cardSpacing,
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // Wrap in Expanded for proper sizing in Row mode
+        if (!responsive.isPhone) 
+          Expanded(
+            child: StaggeredAnimation(
+              index: 1,
+              baseDelay: const Duration(milliseconds: 500),
+              child: _buildUrlCard(context, colorScheme),
+            ),
+          )
+        else
+          StaggeredAnimation(
+            index: 1,
+            baseDelay: const Duration(milliseconds: 500),
+            child: _buildUrlCard(context, colorScheme),
+          ),
+        
+        if (!responsive.isPhone)
+          Expanded(
+            child: StaggeredAnimation(
+              index: 2,
+              baseDelay: const Duration(milliseconds: 500),
+              child: _buildWifiCard(context, colorScheme),
+            ),
+          )
+        else
+          StaggeredAnimation(
+            index: 2,
+            baseDelay: const Duration(milliseconds: 500),
+            child: _buildWifiCard(context, colorScheme),
+          ),
+      ],
+    );
+  }
+
+  /// Build URL QR code card
+  Widget _buildUrlCard(BuildContext context, ColorScheme colorScheme) {
+    return QRTypeCard(
+      icon: Icons.link_rounded,
+      title: 'URL QR Code',
+      subtitle: 'Create a QR code for any website link',
+      primaryColor: colorScheme.primary,
+      secondaryColor: colorScheme.tertiary,
+      onTap: () => context.goToUrlGenerator(),
+    );
+  }
+
+  /// Build WiFi QR code card
+  Widget _buildWifiCard(BuildContext context, ColorScheme colorScheme) {
+    return QRTypeCard(
+      icon: Icons.wifi_rounded,
+      title: 'WiFi QR Code',
+      subtitle: 'Share WiFi credentials instantly',
+      primaryColor: colorScheme.secondary,
+      secondaryColor: colorScheme.primary,
+      onTap: () => context.goToWifiGenerator(),
+    );
+  }
+
+  /// Build footer with helpful hint - responsive sizing
+  Widget _buildFooter(BuildContext context, ColorScheme colorScheme, Responsive responsive) {
+    return Container(
+      padding: responsive.padding,
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: colorScheme.outline.withValues(alpha: 0.2),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.info_outline_rounded,
+            size: responsive.iconSize * 0.83, // Slightly smaller
+            color: colorScheme.primary,
+          ),
+          SizedBox(width: responsive.spacing * 1.5),
+          Expanded(
+            child: Text(
+              'Tap a card to start creating your QR code',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+                fontSize: responsive.value(
+                  phone: 13.0,
+                  tablet: 14.0,
+                  desktop: 15.0,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

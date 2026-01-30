@@ -1,0 +1,44 @@
+# Picture Frame Border Prompts - No Text, Just Visual Frames
+# Format: output_name | prompt
+
+# PUNK ROCK FRAMES (5 variants)
+punk_torn | Torn paper picture frame with ripped edges, safety pins at corners, grunge texture, black and white with red accents, punk rock aesthetic, empty center
+punk_pins | Picture frame made of safety pins and chains, metallic silver, punk studs at corners, distressed texture, edgy design, empty center
+punk_grunge | Grunge spray paint picture frame, dripping paint effect, black white red color scheme, rough edges, punk rock style, clear center
+punk_anarchy | Punk rock picture frame with anarchy symbols in corners, torn denim texture, safety pins, black background, white drips, square frame, empty center
+punk_chains | Chain link picture frame, metallic punk aesthetic, padlock at top center, industrial look, dark metal texture, empty center space
+
+# CYBERPUNK FRAMES (5 variants)
+cyber_glitch | Cyberpunk picture frame with neon blue pink glitch effects, digital corruption, circuit board pattern, holographic aesthetic, center empty
+cyber_neon | Neon picture frame, bright pink cyan yellow lines, grid pattern, retro futuristic, dark background, digital aesthetic, square empty center
+cyber_circuit | Circuit board picture frame design, green electronic traces, microchip corners, tech aesthetic, metallic copper accents, center clear
+cyber_matrix | Matrix code picture frame, falling green digital characters around edges, black background, cyberpunk aesthetic, square center empty
+cyber_holo | Holographic picture frame, iridescent colors, glitch lines, vaporwave aesthetic, pink cyan gradient, futuristic, center space empty
+
+# HARD/EDGY FRAMES (5 variants)
+edgy_skull | Picture frame with stylized skull motifs in corners, lightning bolts on sides, metallic silver black, edgy design, center clear
+edgy_lightning | Lightning bolt picture frame, electric blue white, sharp angles, high energy design, dark background, square empty center
+edgy_metal | Brushed metal picture frame, industrial bolts in corners, steel gray silver, rivets, mechanical aesthetic, center empty
+edgy_flame | Flame picture frame, orange red yellow fire around edges, dark background, intense aesthetic, square center empty
+edgy_blade | Sharp blade picture frame, metallic silver edges, angular design, cold steel aesthetic, dark background, center clear
+
+# CREATURE FRAMES (original cute monsters) (5 variants)
+creature_blob | Picture frame with cute blob creatures in corners, pastel colors, friendly monster aesthetic, round soft shapes, center space empty
+creature_plant | Plant creature picture frame, cute venus flytrap monsters with smiling faces, green pink, botanical monster aesthetic, center clear
+creature_cloud | Cloud creature picture frame, fluffy white monsters with happy faces in corners, sky blue background, soft aesthetic, empty center
+creature_gem | Gem creature picture frame, crystalline monsters with faceted bodies, rainbow colors, sparkly magical aesthetic, square center empty
+creature_goo | Goo creature picture frame, translucent slime monsters in corners, neon colors, drippy fun aesthetic, center empty
+
+# CAT FRAMES (anime cats, cyber cats, punk cats) (5 variants)
+cat_anime | Anime cat picture frame, cute cat faces in corners, pastel colors, kawaii aesthetic, cat paw prints around edges, center space empty
+cat_cyber | Cyberpunk cat picture frame, neon cat silhouettes with glitch effects, pink cyan, futuristic cat aesthetic, digital style, empty center
+cat_punk | Punk rock cat picture frame, grunge cats with mohawks in corners, black white red, edgy feline design, spray paint style, center clear
+cat_galaxy | Space cat picture frame, cosmic cats floating in starfield, purple blue pink nebula, sparkles, magical aesthetic, square center empty
+cat_ninja | Ninja cat picture frame, stealthy cats in martial arts poses, black gray red, sharp angles, cool cat aesthetic, center empty
+
+# KAWAII FRAMES (original cute aesthetic) (5 variants)
+kawaii_stars | Kawaii picture frame with pastel stars hearts clouds, soft pink purple blue, cute aesthetic, bows in corners, center space empty
+kawaii_bows | Picture frame made of ribbons and bows, pastel pink white, delicate feminine aesthetic, soft shadows, square center empty
+kawaii_hearts | Heart picture frame, pastel colors, small decorative hearts around edges, bubbly aesthetic, soft pink colors, center clear
+kawaii_sweets | Dessert picture frame, cute pastel donuts cupcakes candies in corners, kawaii food aesthetic, sweet design, center empty
+kawaii_flowers | Soft pastel flower picture frame, cherry blossoms and daisies, pink white, delicate floral aesthetic, square empty center
