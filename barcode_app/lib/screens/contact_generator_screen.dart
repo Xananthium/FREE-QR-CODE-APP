@@ -5,6 +5,7 @@ import '../core/animations/animation_constants.dart';
 import '../core/animations/widget_animations.dart';
 import '../core/navigation/app_router.dart';
 import '../core/utils/qr_encoder.dart';
+import '../models/qr_data.dart';
 import '../models/qr_type.dart';
 import '../providers/qr_provider.dart';
 import '../widgets/loading_overlay.dart';
@@ -42,6 +43,14 @@ class _ContactGeneratorScreenState extends State<ContactGeneratorScreen> {
   String? _errorMessage;
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadExistingData();
+    });
+  }
+
+  @override
   void dispose() {
     _firstNameController.dispose();
     _lastNameController.dispose();
@@ -51,6 +60,40 @@ class _ContactGeneratorScreenState extends State<ContactGeneratorScreen> {
     _titleController.dispose();
     _websiteController.dispose();
     super.dispose();
+  }
+
+  void _loadExistingData() {
+    final qrProvider = context.read<QRProvider>();
+    final qrData = qrProvider.currentQRData;
+
+    if (qrData?.type == QRType.contact && qrData?.metadata != null) {
+      final metadata = qrData!.metadata!;
+      setState(() {
+        if (metadata['firstName'] != null) {
+          _firstNameController.text = metadata['firstName'] as String;
+        }
+        if (metadata['lastName'] != null) {
+          _lastNameController.text = metadata['lastName'] as String;
+        }
+        if (metadata['phone'] != null) {
+          _phoneController.text = metadata['phone'] as String;
+        }
+        if (metadata['email'] != null) {
+          _emailController.text = metadata['email'] as String;
+        }
+        if (metadata['company'] != null) {
+          _companyController.text = metadata['company'] as String;
+        }
+        if (metadata['title'] != null) {
+          _titleController.text = metadata['title'] as String;
+        }
+        if (metadata['website'] != null) {
+          _websiteController.text = metadata['website'] as String;
+        }
+        _hasGenerated = true;
+        _mode = ContactMode.create;
+      });
+    }
   }
 
   Future<void> _pickContact() async {
@@ -79,11 +122,37 @@ class _ContactGeneratorScreenState extends State<ContactGeneratorScreen> {
     qrProvider.updateQRType(QRType.contact);
 
     final vCard = QREncoder.encodeVCard(contact.toVCard());
-    await qrProvider.generateQRCode(
-      vCard,
-      label:
-          contact.displayName.isNotEmpty ? contact.displayName : 'Contact QR',
+
+    // Extract metadata from contact
+    final phone = contact.phones.isNotEmpty ? contact.phones.first.number : '';
+    final email = contact.emails.isNotEmpty ? contact.emails.first.address : '';
+    final company = contact.organizations.isNotEmpty
+        ? contact.organizations.first.company
+        : '';
+    final title = contact.organizations.isNotEmpty
+        ? contact.organizations.first.title
+        : '';
+    final website = contact.websites.isNotEmpty
+        ? contact.websites.first.url
+        : '';
+
+    final qrData = QRData(
+      type: QRType.contact,
+      content: vCard,
+      label: contact.displayName.isNotEmpty ? contact.displayName : 'Contact QR',
+      timestamp: DateTime.now(),
+      metadata: {
+        'firstName': contact.name.first,
+        'lastName': contact.name.last,
+        'phone': phone,
+        'email': email,
+        'company': company,
+        'title': title,
+        'website': website,
+      },
     );
+
+    await qrProvider.generateQRFromData(qrData);
 
     setState(() {
       _hasGenerated = true;

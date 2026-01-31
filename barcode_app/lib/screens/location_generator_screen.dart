@@ -6,6 +6,7 @@ import '../core/animations/animation_constants.dart';
 import '../core/animations/widget_animations.dart';
 import '../core/navigation/app_router.dart';
 import '../core/utils/qr_encoder.dart';
+import '../models/qr_data.dart';
 import '../models/qr_type.dart';
 import '../providers/qr_provider.dart';
 import '../widgets/loading_overlay.dart';
@@ -49,6 +50,64 @@ class _LocationGeneratorScreenState extends State<LocationGeneratorScreen> {
   String? _errorMessage;
 
   @override
+  void initState() {
+    super.initState();
+    // Load existing QR data if present (from history tap)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadExistingData();
+    });
+  }
+
+  void _loadExistingData() {
+    final qrProvider = context.read<QRProvider>();
+    final qrData = qrProvider.currentQRData;
+
+    // Only load if it's Location type and has metadata
+    if (qrData?.type == QRType.location && qrData?.metadata != null) {
+      final metadata = qrData!.metadata!;
+
+      setState(() {
+        // Restore mode
+        if (metadata['mode'] == 'coordinates') {
+          _mode = LocationMode.coordinates;
+        } else {
+          _mode = LocationMode.address;
+        }
+
+        // Restore label
+        if (metadata['label'] != null) {
+          _labelController.text = metadata['label'] as String;
+        }
+
+        // Restore mode-specific fields
+        if (_mode == LocationMode.address) {
+          if (metadata['street'] != null) {
+            _streetController.text = metadata['street'] as String;
+          }
+          if (metadata['city'] != null) {
+            _cityController.text = metadata['city'] as String;
+          }
+          if (metadata['state'] != null) {
+            _stateController.text = metadata['state'] as String;
+          }
+          if (metadata['zip'] != null) {
+            _zipController.text = metadata['zip'] as String;
+          }
+        } else {
+          if (metadata['latitude'] != null) {
+            _latitudeController.text = metadata['latitude'] as String;
+          }
+          if (metadata['longitude'] != null) {
+            _longitudeController.text = metadata['longitude'] as String;
+          }
+        }
+
+        _hasGenerated = true;
+      });
+    }
+  }
+
+  @override
   void dispose() {
     _streetController.dispose();
     _cityController.dispose();
@@ -74,22 +133,52 @@ class _LocationGeneratorScreenState extends State<LocationGeneratorScreen> {
     qrProvider.updateQRType(QRType.location);
 
     try {
-      final encoded = _mode == LocationMode.address
-          ? QREncoder.encodeLocation(
-              address: _formatAddress(),
-              label: _labelController.text.trim().isEmpty
-                  ? null
-                  : _labelController.text.trim(),
-            )
-          : QREncoder.encodeLocation(
-              latitude: double.parse(_latitudeController.text.trim()),
-              longitude: double.parse(_longitudeController.text.trim()),
-              label: _labelController.text.trim().isEmpty
-                  ? null
-                  : _labelController.text.trim(),
-            );
+      final label = _labelController.text.trim().isEmpty
+          ? null
+          : _labelController.text.trim();
 
-      await qrProvider.generateQRCode(encoded, label: 'Location QR Code');
+      // Build metadata based on mode
+      final Map<String, dynamic> metadata = {
+        'mode': _mode == LocationMode.address ? 'address' : 'coordinates',
+        'label': label ?? '',
+      };
+
+      String encoded;
+      if (_mode == LocationMode.address) {
+        // Address mode
+        metadata['street'] = _streetController.text.trim();
+        metadata['city'] = _cityController.text.trim();
+        metadata['state'] = _stateController.text.trim();
+        metadata['zip'] = _zipController.text.trim();
+
+        encoded = QREncoder.encodeLocation(
+          address: _formatAddress(),
+          label: label,
+        );
+      } else {
+        // Coordinates mode
+        final lat = _latitudeController.text.trim();
+        final lng = _longitudeController.text.trim();
+        metadata['latitude'] = lat;
+        metadata['longitude'] = lng;
+
+        encoded = QREncoder.encodeLocation(
+          latitude: double.parse(lat),
+          longitude: double.parse(lng),
+          label: label,
+        );
+      }
+
+      // Create QRData with metadata for field population
+      final qrData = QRData(
+        type: QRType.location,
+        content: encoded,
+        label: 'Location QR Code',
+        timestamp: DateTime.now(),
+        metadata: metadata,
+      );
+
+      await qrProvider.generateQRFromData(qrData);
       setState(() {
         _hasGenerated = true;
       });
