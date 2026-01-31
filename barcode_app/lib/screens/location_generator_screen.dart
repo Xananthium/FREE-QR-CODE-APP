@@ -37,16 +37,15 @@ class _LocationGeneratorScreenState extends State<LocationGeneratorScreen> {
   final _longitudeController = TextEditingController();
 
   // Geocoding fields (for converting address to coordinates)
-  final _geoStreetController = TextEditingController();
-  final _geoCityController = TextEditingController();
-  final _geoStateController = TextEditingController();
-  final _geoZipController = TextEditingController();
+  final _addressSearchController = TextEditingController();
 
   final _labelController = TextEditingController();
 
   LocationMode _mode = LocationMode.address;
   bool _hasGenerated = false;
   bool _isGeocoding = false;
+  bool _showSuggestions = false;
+  List<Map<String, dynamic>> _addressSuggestions = [];
   String? _errorMessage;
 
   @override
@@ -57,10 +56,7 @@ class _LocationGeneratorScreenState extends State<LocationGeneratorScreen> {
     _zipController.dispose();
     _latitudeController.dispose();
     _longitudeController.dispose();
-    _geoStreetController.dispose();
-    _geoCityController.dispose();
-    _geoStateController.dispose();
-    _geoZipController.dispose();
+    _addressSearchController.dispose();
     _labelController.dispose();
     super.dispose();
   }
@@ -138,106 +134,69 @@ class _LocationGeneratorScreenState extends State<LocationGeneratorScreen> {
     return parts.join(', ');
   }
 
-  /// Format geocoding address parts
-  String _formatGeocodingAddress() {
-    final parts = <String>[];
-
-    final street = _geoStreetController.text.trim();
-    if (street.isNotEmpty) {
-      parts.add(street);
+  /// Search for addresses as user types (autocomplete)
+  Future<void> _searchAddresses(String query) async {
+    if (query.trim().length < 3) {
+      setState(() {
+        _showSuggestions = false;
+        _addressSuggestions = [];
+      });
+      return;
     }
-
-    final city = _geoCityController.text.trim();
-    final state = _geoStateController.text.trim();
-    final zip = _geoZipController.text.trim();
-
-    final cityStateParts = <String>[];
-    if (city.isNotEmpty) {
-      cityStateParts.add(city);
-    }
-
-    if (state.isNotEmpty && zip.isNotEmpty) {
-      cityStateParts.add('$state $zip');
-    } else if (state.isNotEmpty) {
-      cityStateParts.add(state);
-    } else if (zip.isNotEmpty) {
-      cityStateParts.add(zip);
-    }
-
-    if (cityStateParts.isNotEmpty) {
-      parts.add(cityStateParts.join(', '));
-    }
-
-    return parts.join(', ');
-  }
-
-  /// Convert address to GPS coordinates using Nominatim (OpenStreetMap) API
-  /// This is a free, privacy-friendly geocoding service with no API key required
-  Future<void> _getCoordinatesFromAddress() async {
-    setState(() {
-      _errorMessage = null;
-      _isGeocoding = true;
-    });
 
     try {
-      // Validate at least some address fields are filled
-      if (_geoStreetController.text.trim().isEmpty &&
-          _geoCityController.text.trim().isEmpty) {
-        throw Exception('Please enter at least a street address or city');
-      }
-
-      final address = _formatGeocodingAddress();
-
-      // Call Nominatim API (OpenStreetMap)
-      final encodedAddress = Uri.encodeComponent(address);
+      final encodedQuery = Uri.encodeComponent(query.trim());
       final url = Uri.parse(
-        'https://nominatim.openstreetmap.org/search?q=$encodedAddress&format=json&limit=1',
+        'https://nominatim.openstreetmap.org/search?q=$encodedQuery&format=json&limit=5',
       );
 
       final response = await http.get(
         url,
         headers: {
-          'User-Agent': 'FreeQRCodeApp/1.0', // Required by Nominatim
+          'User-Agent': 'FreeQRCodeApp/1.0',
         },
       );
 
       if (response.statusCode == 200) {
         final List<dynamic> results = json.decode(response.body);
 
-        if (results.isEmpty) {
-          throw Exception('Address not found. Please check your address.');
-        }
-
-        final location = results[0];
-        final lat = double.parse(location['lat']);
-        final lon = double.parse(location['lon']);
-
-        // Fill in the coordinate values
         setState(() {
-          _latitudeController.text = lat.toStringAsFixed(6);
-          _longitudeController.text = lon.toStringAsFixed(6);
-          _isGeocoding = false;
+          _addressSuggestions = results.cast<Map<String, dynamic>>();
+          _showSuggestions = results.isNotEmpty;
         });
-
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Found coordinates: ${lat.toStringAsFixed(4)}, ${lon.toStringAsFixed(4)}'),
-              backgroundColor: Colors.green,
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
-        }
-      } else {
-        throw Exception('Geocoding service temporarily unavailable');
       }
     } catch (e) {
+      // Silently fail autocomplete - user can still type manually
       setState(() {
-        _errorMessage = e.toString().replaceAll('Exception: ', '');
-        _isGeocoding = false;
+        _showSuggestions = false;
+        _addressSuggestions = [];
       });
     }
   }
+
+  /// Handle selection of an address suggestion
+  void _selectAddressSuggestion(Map<String, dynamic> suggestion) {
+    final lat = double.parse(suggestion['lat']);
+    final lon = double.parse(suggestion['lon']);
+
+    setState(() {
+      _latitudeController.text = lat.toStringAsFixed(6);
+      _longitudeController.text = lon.toStringAsFixed(6);
+      _addressSearchController.text = suggestion['display_name'];
+      _showSuggestions = false;
+      _addressSuggestions = [];
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Set coordinates: ${lat.toStringAsFixed(4)}, ${lon.toStringAsFixed(4)}'),
+        backgroundColor: Colors.green,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
 
   String? _validateStreet(String? value) {
     if (value == null || value.trim().isEmpty) {
@@ -490,7 +449,7 @@ class _LocationGeneratorScreenState extends State<LocationGeneratorScreen> {
               ],
             ),
           ] else ...[
-            // Coordinates mode: Manual entry OR convert from address
+            // Coordinates mode: Manual entry OR search address
             Row(
               children: [
                 Expanded(
@@ -537,9 +496,9 @@ class _LocationGeneratorScreenState extends State<LocationGeneratorScreen> {
               ],
             ),
             const SizedBox(height: 16),
-            // Address to coordinates converter
+            // Address search with autocomplete
             Text(
-              'Get coordinates from address:',
+              'Search for an address:',
               style: TextStyle(
                 color: colorScheme.onSurfaceVariant,
                 fontSize: 12,
@@ -547,64 +506,80 @@ class _LocationGeneratorScreenState extends State<LocationGeneratorScreen> {
               ),
             ),
             const SizedBox(height: 12),
-            _buildTextField(
-              controller: _geoStreetController,
-              label: 'Street Address',
-              hint: '1600 Amphitheatre Pkwy',
-              icon: Icons.home_rounded,
-            ),
-            const SizedBox(height: 12),
-            _buildTextField(
-              controller: _geoCityController,
-              label: 'City',
-              hint: 'Mountain View',
-              icon: Icons.location_city_rounded,
-            ),
-            const SizedBox(height: 12),
-            Row(
+            Column(
               children: [
-                Expanded(
-                  flex: 2,
-                  child: _buildTextField(
-                    controller: _geoStateController,
-                    label: 'State',
-                    hint: 'CA',
-                    icon: Icons.map_rounded,
+                TextFormField(
+                  controller: _addressSearchController,
+                  onChanged: _searchAddresses,
+                  decoration: InputDecoration(
+                    labelText: 'Type address...',
+                    hintText: 'Start typing: 1600 Amphitheatre...',
+                    prefixIcon: const Icon(Icons.search_rounded),
+                    suffixIcon: _addressSearchController.text.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(Icons.clear_rounded),
+                            onPressed: () {
+                              setState(() {
+                                _addressSearchController.clear();
+                                _showSuggestions = false;
+                                _addressSuggestions = [];
+                              });
+                            },
+                          )
+                        : null,
+                    filled: true,
+                    fillColor: colorScheme.surface,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide(
+                          color: colorScheme.outline.withValues(alpha: 0.4)),
+                    ),
                   ),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildTextField(
-                    controller: _geoZipController,
-                    label: 'ZIP',
-                    hint: '94043',
-                    icon: Icons.pin_drop_rounded,
-                    keyboardType: TextInputType.number,
+                // Autocomplete suggestions dropdown
+                if (_showSuggestions && _addressSuggestions.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Container(
+                    constraints: const BoxConstraints(maxHeight: 200),
+                    decoration: BoxDecoration(
+                      color: colorScheme.surface,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: colorScheme.outline.withValues(alpha: 0.2),
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.1),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: _addressSuggestions.length,
+                      itemBuilder: (context, index) {
+                        final suggestion = _addressSuggestions[index];
+                        return ListTile(
+                          dense: true,
+                          leading: Icon(
+                            Icons.location_on_rounded,
+                            color: colorScheme.primary,
+                            size: 20,
+                          ),
+                          title: Text(
+                            suggestion['display_name'],
+                            style: const TextStyle(fontSize: 14),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          onTap: () => _selectAddressSuggestion(suggestion),
+                        );
+                      },
+                    ),
                   ),
-                ),
+                ],
               ],
-            ),
-            const SizedBox(height: 12),
-            // Get Coordinates button
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: _isGeocoding ? null : _getCoordinatesFromAddress,
-                icon: _isGeocoding
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.my_location_rounded),
-                label: Text(_isGeocoding ? 'Finding...' : 'Get GPS Coordinates'),
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
             ),
           ],
           const SizedBox(height: 16),

@@ -75,10 +75,10 @@ class _ExportScreenState extends State<ExportScreen> {
         setState(() => _saveButtonState = ExportButtonState.success);
         _showSuccess('Saved to Photos! Open your Photos app to view it.');
 
-        // Reset button after 2 seconds
-        await Future.delayed(const Duration(seconds: 2));
+        // Wait briefly to show success, then navigate home
+        await Future.delayed(const Duration(milliseconds: 1500));
         if (mounted) {
-          setState(() => _saveButtonState = ExportButtonState.ready);
+          context.goToHome();
         }
       } else {
         setState(() => _saveButtonState = ExportButtonState.error);
@@ -133,11 +133,11 @@ class _ExportScreenState extends State<ExportScreen> {
       if (result.status.name == 'success') {
         setState(() => _shareButtonState = ExportButtonState.success);
         _showSuccess('Shared successfully!');
-        
-        // Reset button after 2 seconds
-        await Future.delayed(const Duration(seconds: 2));
+
+        // Wait briefly to show success, then navigate home
+        await Future.delayed(const Duration(milliseconds: 1500));
         if (mounted) {
-          setState(() => _shareButtonState = ExportButtonState.ready);
+          context.goToHome();
         }
       } else if (result.status.name == 'dismissed') {
         // User dismissed the share sheet - just reset
