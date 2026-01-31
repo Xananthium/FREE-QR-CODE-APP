@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../animations/page_transitions.dart';
 import 'routes.dart';
+import '../../screens/onboarding/onboarding_screen.dart';
 import '../../screens/home/home_screen.dart';
 import '../../screens/url_generator_screen.dart';
 import '../../screens/wifi_generator_screen.dart';
@@ -23,10 +25,36 @@ import '../../screens/error_screen.dart';
 /// - Deep linking
 /// - Browser URL updates (web)
 /// - Error handling
+/// - First-launch onboarding flow
 final GoRouter appRouter = GoRouter(
   initialLocation: AppRoutes.home,
   debugLogDiagnostics: true,
+  redirect: (context, state) async {
+    // Check if user has completed onboarding
+    final prefs = await SharedPreferences.getInstance();
+    final onboardingComplete = prefs.getBool('onboarding_complete') ?? false;
+
+    // If not completed and not already on onboarding screen, redirect to onboarding
+    if (!onboardingComplete && state.matchedLocation != AppRoutes.onboarding) {
+      return AppRoutes.onboarding;
+    }
+
+    // If onboarding is complete and user is on onboarding screen, redirect to home
+    if (onboardingComplete && state.matchedLocation == AppRoutes.onboarding) {
+      return AppRoutes.home;
+    }
+
+    return null; // No redirect needed
+  },
   routes: [
+    GoRoute(
+      path: AppRoutes.onboarding,
+      name: AppRoutes.onboardingName,
+      pageBuilder: (context, state) => buildFadeTransitionPage(
+        child: const OnboardingScreen(),
+        state: state,
+      ),
+    ),
     GoRoute(
       path: AppRoutes.home,
       name: AppRoutes.homeName,
@@ -127,6 +155,9 @@ final GoRouter appRouter = GoRouter(
 /// These helper methods make navigation cleaner and prevent typos in route names.
 /// Usage: context.goToUrlGenerator() instead of context.go('/url-generator')
 extension NavigationExtension on BuildContext {
+  /// Navigate to onboarding screen (rarely used, only for testing)
+  void goToOnboarding() => go(AppRoutes.onboarding);
+
   /// Navigate to home screen
   void goToHome() => go(AppRoutes.home);
 

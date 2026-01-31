@@ -6,6 +6,10 @@ class AppRoutes {
   // Private constructor to prevent instantiation
   AppRoutes._();
 
+  /// Onboarding screen route - First launch experience
+  static const String onboarding = '/onboarding';
+  static const String onboardingName = 'onboarding';
+
   /// Home screen route - Main landing page
   static const String home = '/';
   static const String homeName = 'home';
@@ -52,6 +56,7 @@ class AppRoutes {
 
   /// List of all routes for validation
   static const List<String> allRoutes = [
+    onboarding,
     home,
     urlGenerator,
     wifiGenerator,

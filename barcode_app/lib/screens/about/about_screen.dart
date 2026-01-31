@@ -3,6 +3,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../core/constants/brand_constants.dart';
 import '../../core/animations/widget_animations.dart';
 import '../../core/utils/responsive.dart';
+import '../../core/navigation/app_router.dart';
 
 /// About screen showing app information and Digital Disconnections branding
 /// 
@@ -15,10 +16,24 @@ import '../../core/utils/responsive.dart';
 class AboutScreen extends StatelessWidget {
   const AboutScreen({super.key});
 
-  Future<void> _launchWebsite() async {
-    final uri = Uri.parse(BrandConstants.websiteUrl);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
+  Future<void> _launchWebsite(BuildContext context) async {
+    try {
+      final uri = Uri.parse(BrandConstants.websiteUrl);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Could not open website')),
+          );
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error opening website: $e')),
+        );
+      }
     }
   }
 
@@ -30,6 +45,11 @@ class AboutScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded),
+          onPressed: () => context.goBackOrHome(),
+          tooltip: 'Back',
+        ),
         title: const Text('About'),
         centerTitle: true,
       ),
@@ -231,7 +251,7 @@ class AboutScreen extends StatelessWidget {
                 FadeSlideIn(
                   delay: const Duration(milliseconds: 600),
                   child: FilledButton.icon(
-                    onPressed: _launchWebsite,
+                    onPressed: () => _launchWebsite(context),
                     icon: const Icon(Icons.language_rounded),
                     label: Text(
                       'Visit ${BrandConstants.companyName}',
@@ -261,7 +281,7 @@ class AboutScreen extends StatelessWidget {
                 FadeSlideIn(
                   delay: const Duration(milliseconds: 750),
                   child: GestureDetector(
-                    onTap: _launchWebsite,
+                    onTap: () => _launchWebsite(context),
                     child: Text(
                       BrandConstants.websiteUrl,
                       style: theme.textTheme.bodyMedium?.copyWith(

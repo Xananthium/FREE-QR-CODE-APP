@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import '../core/animations/animation_constants.dart';
 import '../core/animations/widget_animations.dart';
@@ -23,18 +25,30 @@ class LocationGeneratorScreen extends StatefulWidget {
 
 class _LocationGeneratorScreenState extends State<LocationGeneratorScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _addressController = TextEditingController();
+
+  // Address fields
+  final _streetController = TextEditingController();
+  final _cityController = TextEditingController();
+  final _stateController = TextEditingController();
+  final _zipController = TextEditingController();
+
+  // Coordinate fields
   final _latitudeController = TextEditingController();
   final _longitudeController = TextEditingController();
+
   final _labelController = TextEditingController();
 
   LocationMode _mode = LocationMode.address;
   bool _hasGenerated = false;
+  bool _isGeocoding = false;
   String? _errorMessage;
 
   @override
   void dispose() {
-    _addressController.dispose();
+    _streetController.dispose();
+    _cityController.dispose();
+    _stateController.dispose();
+    _zipController.dispose();
     _latitudeController.dispose();
     _longitudeController.dispose();
     _labelController.dispose();
@@ -56,7 +70,7 @@ class _LocationGeneratorScreenState extends State<LocationGeneratorScreen> {
     try {
       final encoded = _mode == LocationMode.address
           ? QREncoder.encodeLocation(
-              address: _addressController.text.trim(),
+              address: _formatAddress(),
               label: _labelController.text.trim().isEmpty
                   ? null
                   : _labelController.text.trim(),
@@ -80,9 +94,133 @@ class _LocationGeneratorScreenState extends State<LocationGeneratorScreen> {
     }
   }
 
-  String? _validateAddress(String? value) {
+  /// Format address parts into proper format: "Street, City, State Zip"
+  String _formatAddress() {
+    final parts = <String>[];
+
+    final street = _streetController.text.trim();
+    if (street.isNotEmpty) {
+      parts.add(street);
+    }
+
+    final city = _cityController.text.trim();
+    final state = _stateController.text.trim();
+    final zip = _zipController.text.trim();
+
+    // Build "City, State Zip" part
+    final cityStateParts = <String>[];
+    if (city.isNotEmpty) {
+      cityStateParts.add(city);
+    }
+
+    if (state.isNotEmpty && zip.isNotEmpty) {
+      cityStateParts.add('$state $zip');
+    } else if (state.isNotEmpty) {
+      cityStateParts.add(state);
+    } else if (zip.isNotEmpty) {
+      cityStateParts.add(zip);
+    }
+
+    if (cityStateParts.isNotEmpty) {
+      parts.add(cityStateParts.join(', '));
+    }
+
+    return parts.join(', ');
+  }
+
+  /// Convert address to GPS coordinates using Nominatim (OpenStreetMap) API
+  /// This is a free, privacy-friendly geocoding service with no API key required
+  Future<void> _getCoordinatesFromAddress() async {
+    setState(() {
+      _errorMessage = null;
+      _isGeocoding = true;
+    });
+
+    try {
+      // Validate at least some address fields are filled
+      if (_streetController.text.trim().isEmpty &&
+          _cityController.text.trim().isEmpty) {
+        throw Exception('Please enter at least a street address or city');
+      }
+
+      final address = _formatAddress();
+
+      // Call Nominatim API (OpenStreetMap)
+      final encodedAddress = Uri.encodeComponent(address);
+      final url = Uri.parse(
+        'https://nominatim.openstreetmap.org/search?q=$encodedAddress&format=json&limit=1',
+      );
+
+      final response = await http.get(
+        url,
+        headers: {
+          'User-Agent': 'FreeQRCodeApp/1.0', // Required by Nominatim
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> results = json.decode(response.body);
+
+        if (results.isEmpty) {
+          throw Exception('Address not found. Please check your address.');
+        }
+
+        final location = results[0];
+        final lat = double.parse(location['lat']);
+        final lon = double.parse(location['lon']);
+
+        // Switch to coordinates mode and fill in the values
+        setState(() {
+          _mode = LocationMode.coordinates;
+          _latitudeController.text = lat.toStringAsFixed(6);
+          _longitudeController.text = lon.toStringAsFixed(6);
+          _isGeocoding = false;
+        });
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Found coordinates: ${lat.toStringAsFixed(4)}, ${lon.toStringAsFixed(4)}'),
+              backgroundColor: Colors.green,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      } else {
+        throw Exception('Geocoding service temporarily unavailable');
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = e.toString().replaceAll('Exception: ', '');
+        _isGeocoding = false;
+      });
+    }
+  }
+
+  String? _validateStreet(String? value) {
     if (value == null || value.trim().isEmpty) {
-      return 'Address is required';
+      return 'Street address is required';
+    }
+    return null;
+  }
+
+  String? _validateCity(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'City is required';
+    }
+    return null;
+  }
+
+  String? _validateState(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'State is required';
+    }
+    return null;
+  }
+
+  String? _validateZip(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'ZIP code is required';
     }
     return null;
   }
@@ -268,11 +406,67 @@ class _LocationGeneratorScreenState extends State<LocationGeneratorScreen> {
         children: [
           if (_mode == LocationMode.address) ...[
             _buildTextField(
-              controller: _addressController,
-              label: 'Address',
-              hint: '1600 Amphitheatre Pkwy, Mountain View, CA',
+              controller: _streetController,
+              label: 'Street Address',
+              hint: '1600 Amphitheatre Pkwy',
+              icon: Icons.home_rounded,
+              validator: _validateStreet,
+            ),
+            const SizedBox(height: 12),
+            _buildTextField(
+              controller: _cityController,
+              label: 'City',
+              hint: 'Mountain View',
               icon: Icons.location_city_rounded,
-              validator: _validateAddress,
+              validator: _validateCity,
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  flex: 2,
+                  child: _buildTextField(
+                    controller: _stateController,
+                    label: 'State',
+                    hint: 'CA',
+                    icon: Icons.map_rounded,
+                    validator: _validateState,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildTextField(
+                    controller: _zipController,
+                    label: 'ZIP',
+                    hint: '94043',
+                    icon: Icons.pin_drop_rounded,
+                    keyboardType: TextInputType.number,
+                    validator: _validateZip,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            // Get Coordinates button
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: _isGeocoding ? null : _getCoordinatesFromAddress,
+                icon: _isGeocoding
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.my_location_rounded),
+                label: Text(_isGeocoding ? 'Finding...' : 'Get GPS Coordinates'),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
             ),
           ] else ...[
             Row(
