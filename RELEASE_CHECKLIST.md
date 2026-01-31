@@ -42,7 +42,7 @@
 ## GitHub Release
 
 ### Repository Setup
-- [x] Create GitHub repository: `Xananthium/digital-eclipse` ✅
+- [x] Create GitHub repository: `Xananthium/FREE-QR-CODE-APP` ✅
 - [x] Push all code to main branch ✅
 - [x] Add README.md to root ✅
 - [x] Add LICENSE to root ✅
@@ -56,7 +56,7 @@
 - [x] Uploaded `digital-eclipse.apk` (90MB) ✅
 - [x] Uploaded `digital-eclipse.ipa` (57MB) ✅
 
-**Release URL**: https://github.com/Xananthium/digital-eclipse/releases/tag/v1.0.0
+**Release URL**: https://github.com/Xananthium/FREE-QR-CODE-APP/releases/tag/v1.0.0
 
 ### Post-Release
 - [x] Update README.md download links to point to release ✅

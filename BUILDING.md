@@ -45,8 +45,8 @@ This guide will help you build the Digital Eclipse QR code generator from source
 
 ```bash
 # Clone the repository
-git clone https://github.com/digitaldisconnections/digital-eclipse.git
-cd digital-eclipse/barcode_app
+git clone https://github.com/digitaldisconnections/FREE-QR-CODE-APP.git
+cd FREE-QR-CODE-APP/barcode_app
 
 # Get dependencies
 flutter pub get
@@ -202,15 +202,15 @@ android {
 
 1. Create a keystore:
    ```bash
-   keytool -genkey -v -keystore digital-eclipse.jks -keyalg RSA -keysize 2048 -validity 10000 -alias digital-eclipse
+   keytool -genkey -v -keystore FREE-QR-CODE-APP.jks -keyalg RSA -keysize 2048 -validity 10000 -alias FREE-QR-CODE-APP
    ```
 
 2. Create `android/key.properties`:
    ```properties
    storePassword=<your-keystore-password>
    keyPassword=<your-key-password>
-   keyAlias=digital-eclipse
-   storeFile=/path/to/digital-eclipse.jks
+   keyAlias=FREE-QR-CODE-APP
+   storeFile=/path/to/FREE-QR-CODE-APP.jks
    ```
 
 3. Build signed APK:

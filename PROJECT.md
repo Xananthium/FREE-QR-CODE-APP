@@ -41,7 +41,7 @@ A free, open-source QR code generator that will never charge subscription fees. 
 
 | Platform | Status | Notes |
 |----------|--------|-------|
-| Android APK | ✅ Ready | `digital-eclipse.apk` (89MB) |
+| Android APK | ✅ Ready | `digital-eclipse.apk` (90MB) |
 | iOS App | ✅ Ready | Needs App Store submission |
 | Web | ✅ Ready | `web/index.html` works offline |
 | GitHub | ⏳ Pending | Repository needs to be created |

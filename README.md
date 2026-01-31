@@ -1,4 +1,4 @@
-# 🌘 Digital Eclipse - Free QR Code Generator
+# 🌘 FREE QR CODE APP
 
 **By [Digital Disconnections Inc.](https://digitaldisconnections.com)**
 
@@ -25,19 +25,19 @@ I got a lot of calls about the broken QR code, but I didn't pay the membership.
 ## 📱 Download Now
 
 ### **Android**
-👉 **[Download APK](https://github.com/Xananthium/digital-eclipse/releases/download/v1.0.0/digital-eclipse.apk)** *(90MB)*
+👉 **[Download APK](https://github.com/Xananthium/FREE-QR-CODE-APP/releases/download/v1.0.0/digital-eclipse.apk)** *(90MB)*
 
 *No Google Play account needed. Just download and install.*
 
 ### **iOS**
-🍎 **[Download IPA](https://github.com/Xananthium/digital-eclipse/releases/download/v1.0.0/digital-eclipse.ipa)** *(57MB)*
+🍎 **[Download IPA](https://github.com/Xananthium/FREE-QR-CODE-APP/releases/download/v1.0.0/digital-eclipse.ipa)** *(57MB)*
 
 *Requires AltStore or sideloading. [How to install →](https://faq.altstore.io/)*
 
 **Or submit to App Store** - See [App Store Submission Guide](#app-store-submission)
 
 ### **Web (Works Offline!)**
-🌐 **[Open Web App](https://xananthium.github.io/digital-eclipse/web/index.html)** - Single HTML file, works offline, no installation needed
+🌐 **[Open Web App](https://xananthium.github.io/FREE-QR-CODE-APP/web/index.html)** - Single HTML file, works offline, no installation needed
 
 *Right-click → Save As to keep it on your computer forever*
 
@@ -118,7 +118,7 @@ The iOS app is **ready for App Store submission**!
 2. **Upload IPA**
    ```bash
    # Option 1: Use Apple Transporter (GUI)
-   # Download from App Store, drag and drop digital-eclipse.ipa
+   # Download from App Store, drag and drop FREE-QR-CODE-APP.ipa
 
    # Option 2: Command line
    xcrun altool --upload-app --type ios \
@@ -157,8 +157,8 @@ We welcome contributions! This app probably does everything it needs to do, but 
 
 ```bash
 # Clone the repository
-git clone https://github.com/digitaldisconnections/digital-eclipse.git
-cd digital-eclipse
+git clone https://github.com/Xananthium/FREE-QR-CODE-APP.git
+cd FREE-QR-CODE-APP
 
 # Install Flutter dependencies
 cd barcode_app
@@ -173,7 +173,7 @@ flutter run
 ## 📁 Repository Structure
 
 ```
-digital-eclipse/
+FREE-QR-CODE-APP/
 ├── barcode_app/              # Flutter mobile app (iOS/Android)
 │   ├── lib/                  # App source code
 │   ├── assets/               # Images, borders, icons
