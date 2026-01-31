@@ -82,6 +82,7 @@ class _ExportScreenState extends State<ExportScreen> {
           content: qrProvider.currentContent,
           type: qrProvider.currentType,
           label: qrProvider.currentQRData?.label,
+          metadata: qrProvider.currentQRData?.metadata,
         );
 
         // Clear current QR code
@@ -151,6 +152,7 @@ class _ExportScreenState extends State<ExportScreen> {
           content: qrProvider.currentContent,
           type: qrProvider.currentType,
           label: qrProvider.currentQRData?.label,
+          metadata: qrProvider.currentQRData?.metadata,
         );
 
         // Clear current QR code

@@ -4,6 +4,7 @@ import '../core/animations/animation_constants.dart';
 import '../core/animations/widget_animations.dart';
 import '../core/navigation/app_router.dart';
 import '../core/utils/qr_encoder.dart';
+import '../models/qr_data.dart';
 import '../models/qr_type.dart';
 import '../providers/qr_provider.dart';
 import '../widgets/loading_overlay.dart';
@@ -28,6 +29,29 @@ class _EmailGeneratorScreenState extends State<EmailGeneratorScreen> {
   String? _errorMessage;
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadExistingData();
+    });
+  }
+
+  void _loadExistingData() {
+    final qrProvider = context.read<QRProvider>();
+    final qrData = qrProvider.currentQRData;
+
+    if (qrData?.type == QRType.email && qrData?.metadata != null) {
+      final metadata = qrData!.metadata!;
+      setState(() {
+        _emailController.text = metadata['email'] ?? '';
+        _subjectController.text = metadata['subject'] ?? '';
+        _bodyController.text = metadata['body'] ?? '';
+        _hasGenerated = true;
+      });
+    }
+  }
+
+  @override
   void dispose() {
     _emailController.dispose();
     _subjectController.dispose();
@@ -48,17 +72,33 @@ class _EmailGeneratorScreenState extends State<EmailGeneratorScreen> {
     qrProvider.updateQRType(QRType.email);
 
     try {
+      final email = _emailController.text.trim();
+      final subject = _subjectController.text.trim().isEmpty
+          ? null
+          : _subjectController.text.trim();
+      final body = _bodyController.text.trim().isEmpty
+          ? null
+          : _bodyController.text.trim();
+
       final encoded = QREncoder.encodeEmail(
-        email: _emailController.text.trim(),
-        subject: _subjectController.text.trim().isEmpty
-            ? null
-            : _subjectController.text.trim(),
-        body: _bodyController.text.trim().isEmpty
-            ? null
-            : _bodyController.text.trim(),
+        email: email,
+        subject: subject,
+        body: body,
       );
 
-      await qrProvider.generateQRCode(encoded, label: 'Email QR Code');
+      final qrData = QRData(
+        type: QRType.email,
+        content: encoded,
+        label: 'Email QR Code',
+        timestamp: DateTime.now(),
+        metadata: {
+          'email': email,
+          'subject': subject ?? '',
+          'body': body ?? '',
+        },
+      );
+
+      await qrProvider.generateQRFromData(qrData);
 
       setState(() {
         _hasGenerated = true;

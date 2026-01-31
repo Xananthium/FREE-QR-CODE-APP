@@ -31,6 +31,7 @@ class QRHistoryService {
     required String content,
     required QRType type,
     String? label,
+    Map<String, dynamic>? metadata,
   }) async {
     try {
       final history = await getHistory();
@@ -42,6 +43,7 @@ class QRHistoryService {
         type: type,
         timestamp: DateTime.now(),
         label: label,
+        metadata: metadata,
       );
 
       // Add to front of list

@@ -8,6 +8,7 @@ class QRHistoryItem {
   final QRType type;
   final DateTime timestamp;
   final String? label;
+  final Map<String, dynamic>? metadata;
 
   QRHistoryItem({
     required this.id,
@@ -15,6 +16,7 @@ class QRHistoryItem {
     required this.type,
     required this.timestamp,
     this.label,
+    this.metadata,
   });
 
   /// Convert to JSON for storage
@@ -25,6 +27,7 @@ class QRHistoryItem {
       'type': type.name,
       'timestamp': timestamp.toIso8601String(),
       'label': label,
+      'metadata': metadata,
     };
   }
 
@@ -39,6 +42,7 @@ class QRHistoryItem {
       ),
       timestamp: DateTime.parse(json['timestamp']),
       label: json['label'],
+      metadata: json['metadata'] as Map<String, dynamic>?,
     );
   }
 

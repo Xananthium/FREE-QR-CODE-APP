@@ -7,7 +7,10 @@ import '../../core/animations/animation_constants.dart';
 import '../../core/utils/responsive.dart';
 import '../../core/services/qr_history_service.dart';
 import '../../models/qr_history_item.dart';
+import '../../models/qr_data.dart';
+import '../../models/qr_type.dart';
 import '../../providers/theme_provider.dart';
+import '../../providers/qr_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/constants/brand_constants.dart';
 
@@ -711,68 +714,114 @@ class _HomeScreenState extends State<HomeScreen>
     Responsive responsive,
     bool isDark,
   ) {
-    return Container(
-      width: 100,
-      margin: const EdgeInsets.only(right: 12),
-      decoration: BoxDecoration(
-        color: isDark
-            ? colorScheme.surfaceVariant
-            : Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: colorScheme.outline.withValues(alpha: 0.1),
+    return InkWell(
+      onTap: () => _loadHistoryItem(context, item),
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        width: 100,
+        margin: const EdgeInsets.only(right: 12),
+        decoration: BoxDecoration(
+          color: isDark
+              ? colorScheme.surfaceVariant
+              : Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: colorScheme.outline.withValues(alpha: 0.1),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // QR code thumbnail
-          Container(
-            width: 70,
-            height: 70,
-            padding: const EdgeInsets.all(4),
-            child: QrImageView(
-              data: item.content,
-              version: QrVersions.auto,
-              size: 70,
-              eyeStyle: QrEyeStyle(
-                eyeShape: QrEyeShape.square,
-                color: colorScheme.onSurface,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // QR code thumbnail
+            Container(
+              width: 70,
+              height: 70,
+              padding: const EdgeInsets.all(4),
+              child: QrImageView(
+                data: item.content,
+                version: QrVersions.auto,
+                size: 70,
+                eyeStyle: QrEyeStyle(
+                  eyeShape: QrEyeShape.square,
+                  color: colorScheme.onSurface,
+                ),
+                dataModuleStyle: QrDataModuleStyle(
+                  dataModuleShape: QrDataModuleShape.square,
+                  color: colorScheme.onSurface,
+                ),
+                backgroundColor: Colors.transparent,
               ),
-              dataModuleStyle: QrDataModuleStyle(
-                dataModuleShape: QrDataModuleShape.square,
-                color: colorScheme.onSurface,
-              ),
-              backgroundColor: Colors.transparent,
             ),
-          ),
 
-          const SizedBox(height: 4),
+            const SizedBox(height: 4),
 
-          // Label
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: Text(
-              item.displayLabel,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-                fontSize: 10,
+            // Label
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: Text(
+                item.displayLabel,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                  fontSize: 10,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
+  }
+
+  /// Load a history item and navigate to its generator screen
+  void _loadHistoryItem(BuildContext context, QRHistoryItem item) {
+    final qrProvider = context.read<QRProvider>();
+
+    // Convert history item to QRData
+    final qrData = QRData(
+      type: item.type,
+      content: item.content,
+      label: item.label,
+      timestamp: item.timestamp,
+      metadata: item.metadata,
+    );
+
+    // Load the data into the provider
+    qrProvider.generateQRFromData(qrData);
+
+    // Navigate to the appropriate generator screen based on type
+    switch (item.type) {
+      case QRType.url:
+        context.goToUrlGenerator();
+        break;
+      case QRType.wifi:
+        context.goToWifiGenerator();
+        break;
+      case QRType.email:
+        context.goToEmailGenerator();
+        break;
+      case QRType.phone:
+        context.goToPhoneGenerator();
+        break;
+      case QRType.sms:
+        context.goToSmsGenerator();
+        break;
+      case QRType.contact:
+        context.goToContactGenerator();
+        break;
+      case QRType.location:
+        context.goToLocationGenerator();
+        break;
+    }
   }
 
   Widget _buildGalleryFooter(BuildContext context, ColorScheme colorScheme,

@@ -6,6 +6,8 @@ import '../core/navigation/app_router.dart';
 import '../core/utils/qr_encoder.dart';
 import '../core/animations/widget_animations.dart';
 import '../core/animations/animation_constants.dart';
+import '../models/qr_data.dart';
+import '../models/qr_type.dart';
 import '../providers/qr_provider.dart';
 import '../widgets/loading_overlay.dart';
 import '../widgets/primary_button.dart';
@@ -30,6 +32,29 @@ class UrlGeneratorScreen extends StatefulWidget {
 class _UrlGeneratorScreenState extends State<UrlGeneratorScreen> {
   final _urlController = TextEditingController();
   Timer? _debounceTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    // Load existing QR data if present (from history tap)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadExistingData();
+    });
+  }
+
+  void _loadExistingData() {
+    final qrProvider = context.read<QRProvider>();
+    final qrData = qrProvider.currentQRData;
+
+    // Only load if it's URL type and has metadata
+    if (qrData?.type == QRType.url && qrData?.metadata != null) {
+      final metadata = qrData!.metadata!;
+
+      if (metadata['url'] != null) {
+        _urlController.text = metadata['url'] as String;
+      }
+    }
+  }
 
   @override
   void dispose() {
@@ -89,7 +114,20 @@ class _UrlGeneratorScreenState extends State<UrlGeneratorScreen> {
 
       // Encode and generate QR
       final encodedUrl = QREncoder.encodeUrl(formattedUrl);
-      await qrProvider.generateQRCode(encodedUrl, label: 'URL QR Code');
+
+      // Create QRData with metadata for field population
+      final qrData = QRData(
+        type: QRType.url,
+        content: encodedUrl,
+        label: 'URL QR Code',
+        timestamp: DateTime.now(),
+        metadata: {
+          'url': formattedUrl,
+        },
+      );
+
+      // Generate QR code with metadata
+      await qrProvider.generateQRFromData(qrData);
     } catch (e) {
       // Silently handle errors - validation happens in UI
       debugPrint('QR generation error: $e');

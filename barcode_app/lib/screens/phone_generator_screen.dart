@@ -4,6 +4,7 @@ import '../core/animations/animation_constants.dart';
 import '../core/animations/widget_animations.dart';
 import '../core/navigation/app_router.dart';
 import '../core/utils/qr_encoder.dart';
+import '../models/qr_data.dart';
 import '../models/qr_type.dart';
 import '../providers/qr_provider.dart';
 import '../widgets/loading_overlay.dart';
@@ -26,6 +27,32 @@ class _PhoneGeneratorScreenState extends State<PhoneGeneratorScreen> {
   String? _errorMessage;
 
   @override
+  void initState() {
+    super.initState();
+    // Load existing QR data if present (from history tap)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadExistingData();
+    });
+  }
+
+  void _loadExistingData() {
+    final qrProvider = context.read<QRProvider>();
+    final qrData = qrProvider.currentQRData;
+
+    // Only load if it's Phone type and has metadata
+    if (qrData?.type == QRType.phone && qrData?.metadata != null) {
+      final metadata = qrData!.metadata!;
+
+      setState(() {
+        if (metadata['phone'] != null) {
+          _phoneController.text = metadata['phone'] as String;
+        }
+        _hasGenerated = true;
+      });
+    }
+  }
+
+  @override
   void dispose() {
     _phoneController.dispose();
     super.dispose();
@@ -44,8 +71,21 @@ class _PhoneGeneratorScreenState extends State<PhoneGeneratorScreen> {
     qrProvider.updateQRType(QRType.phone);
 
     try {
-      final encoded = QREncoder.encodePhone(_phoneController.text.trim());
-      await qrProvider.generateQRCode(encoded, label: 'Phone QR Code');
+      final phone = _phoneController.text.trim();
+      final encoded = QREncoder.encodePhone(phone);
+
+      // Create QRData with metadata for field population
+      final qrData = QRData(
+        type: QRType.phone,
+        content: encoded,
+        label: 'Phone QR Code',
+        timestamp: DateTime.now(),
+        metadata: {
+          'phone': phone,
+        },
+      );
+
+      await qrProvider.generateQRFromData(qrData);
       setState(() {
         _hasGenerated = true;
       });

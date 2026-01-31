@@ -4,6 +4,7 @@ import '../core/animations/animation_constants.dart';
 import '../core/animations/widget_animations.dart';
 import '../core/navigation/app_router.dart';
 import '../core/utils/qr_encoder.dart';
+import '../models/qr_data.dart';
 import '../models/qr_type.dart';
 import '../providers/qr_provider.dart';
 import '../widgets/loading_overlay.dart';
@@ -27,6 +28,28 @@ class _SmsGeneratorScreenState extends State<SmsGeneratorScreen> {
   String? _errorMessage;
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadExistingData();
+    });
+  }
+
+  void _loadExistingData() {
+    final qrProvider = context.read<QRProvider>();
+    final qrData = qrProvider.currentQRData;
+
+    if (qrData?.type == QRType.sms && qrData?.metadata != null) {
+      final metadata = qrData!.metadata!;
+      setState(() {
+        _phoneController.text = metadata['phone'] ?? '';
+        _messageController.text = metadata['message'] ?? '';
+        _hasGenerated = true;
+      });
+    }
+  }
+
+  @override
   void dispose() {
     _phoneController.dispose();
     _messageController.dispose();
@@ -46,13 +69,28 @@ class _SmsGeneratorScreenState extends State<SmsGeneratorScreen> {
     qrProvider.updateQRType(QRType.sms);
 
     try {
+      final phone = _phoneController.text.trim();
+      final message = _messageController.text.trim().isEmpty
+          ? null
+          : _messageController.text.trim();
+
       final encoded = QREncoder.encodeSms(
-        phoneNumber: _phoneController.text.trim(),
-        message: _messageController.text.trim().isEmpty
-            ? null
-            : _messageController.text.trim(),
+        phoneNumber: phone,
+        message: message,
       );
-      await qrProvider.generateQRCode(encoded, label: 'SMS QR Code');
+
+      final qrData = QRData(
+        type: QRType.sms,
+        content: encoded,
+        label: 'SMS QR Code',
+        timestamp: DateTime.now(),
+        metadata: {
+          'phone': phone,
+          'message': message ?? '',
+        },
+      );
+
+      await qrProvider.generateQRFromData(qrData);
       setState(() {
         _hasGenerated = true;
       });

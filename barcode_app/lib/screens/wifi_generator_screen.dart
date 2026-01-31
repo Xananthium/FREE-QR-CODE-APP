@@ -4,6 +4,8 @@ import '../core/navigation/app_router.dart';
 import '../core/utils/qr_encoder.dart';
 import '../core/animations/widget_animations.dart';
 import '../core/animations/animation_constants.dart';
+import '../models/qr_data.dart';
+import '../models/qr_type.dart';
 import '../providers/qr_provider.dart';
 import '../widgets/loading_overlay.dart';
 import '../widgets/primary_button.dart';
@@ -41,6 +43,51 @@ class _WifiGeneratorScreenState extends State<WifiGeneratorScreen> {
   String? _errorMessage;
 
   @override
+  void initState() {
+    super.initState();
+    // Load existing QR data if present (from history tap)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadExistingData();
+    });
+  }
+
+  void _loadExistingData() {
+    final qrProvider = context.read<QRProvider>();
+    final qrData = qrProvider.currentQRData;
+
+    // Only load if it's WiFi type and has metadata
+    if (qrData?.type == QRType.wifi && qrData?.metadata != null) {
+      final metadata = qrData!.metadata!;
+
+      setState(() {
+        // Populate text fields
+        if (metadata['ssid'] != null) {
+          _ssidController.text = metadata['ssid'] as String;
+        }
+        if (metadata['password'] != null) {
+          _passwordController.text = metadata['password'] as String;
+        }
+
+        // Set security type
+        if (metadata['security'] != null) {
+          final security = metadata['security'] as String;
+          _selectedSecurity = SecurityType.values.firstWhere(
+            (s) => s.value == security,
+            orElse: () => SecurityType.wpa2,
+          );
+        }
+
+        // Set hidden flag
+        if (metadata['hidden'] != null) {
+          _isHidden = metadata['hidden'] as bool;
+        }
+
+        _hasGenerated = true;
+      });
+    }
+  }
+
+  @override
   void dispose() {
     _ssidController.dispose();
     _passwordController.dispose();
@@ -61,18 +108,34 @@ class _WifiGeneratorScreenState extends State<WifiGeneratorScreen> {
     final qrProvider = context.read<QRProvider>();
 
     try {
+      final ssid = _ssidController.text.trim();
+      final password = _selectedSecurity != SecurityType.none
+          ? _passwordController.text.trim()
+          : null;
+
       // Encode WiFi credentials
       final wifiString = QREncoder.encodeWifi(
-        ssid: _ssidController.text.trim(),
-        password: _selectedSecurity != SecurityType.none
-            ? _passwordController.text.trim()
-            : null,
+        ssid: ssid,
+        password: password,
         security: _selectedSecurity.value,
         hidden: _isHidden,
       );
 
-      // Generate QR code with loading state
-      await qrProvider.generateQRCode(wifiString);
+      // Create QRData with metadata for field population
+      final qrData = QRData(
+        type: QRType.wifi,
+        content: wifiString,
+        timestamp: DateTime.now(),
+        metadata: {
+          'ssid': ssid,
+          'password': password ?? '',
+          'security': _selectedSecurity.value,
+          'hidden': _isHidden,
+        },
+      );
+
+      // Generate QR code with metadata
+      await qrProvider.generateQRFromData(qrData);
 
       setState(() {
         _hasGenerated = true;
