@@ -73,9 +73,11 @@ class ShareService {
       final mimeType = _getMimeType(filename);
 
       // Share the file via system share sheet
-      final result = await Share.shareXFiles(
-        [XFile(file.path, mimeType: mimeType)],
-        text: 'QR Code generated with Barcode App',
+      final result = await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile(file.path, mimeType: mimeType)],
+          text: 'QR Code generated with Barcode App',
+        ),
       );
 
       return result;
@@ -124,10 +126,12 @@ class ShareService {
       final mimeType = _getMimeType(filename);
 
       // Share the file via system share sheet with position
-      final result = await Share.shareXFiles(
-        [XFile(file.path, mimeType: mimeType)],
-        text: 'QR Code generated with Barcode App',
-        sharePositionOrigin: sharePositionOrigin,
+      final result = await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile(file.path, mimeType: mimeType)],
+          text: 'QR Code generated with Barcode App',
+          sharePositionOrigin: sharePositionOrigin,
+        ),
       );
 
       return result;

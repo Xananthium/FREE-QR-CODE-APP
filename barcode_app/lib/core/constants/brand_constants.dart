@@ -47,13 +47,15 @@ class BrandConstants {
       'Free forever. No subscriptions. No tricks.';
 
   static const String ourStory =
-      'I was planning my daughter\'s 6th birthday party and printing invitations with a Google Maps QR code. '
-      'I clicked on the first website that said "free QR codes." I was very busy planning the party, '
-      'put it on the cards, and sent them out.\n\n'
-      'Three days later I got an email that said I would need to buy a membership if I wanted this QR code to stay active. '
-      'Needless to say, I didn\'t pay their \$30/year membership so this QR code could stay active for a few days, '
-      'and I got several calls about it.\n\n'
-      'So I wrote this app. It\'s free forever.';
+      'There\'s a special time in May when my wife, my daughter, and my sister all share a birthday. '
+      'We decided to do an extra special party, and I made invitations with a Google Maps QR code to the venue. '
+      'I searched for a "Free QR Code Generator" and clicked the first result.\n\n'
+      'Three days later, I got an email saying my QR code was no longer active. '
+      'To reactivate it, I needed a yearly membership for \$30+. '
+      'I got a lot of calls about the broken QR code, but I didn\'t pay the membership.\n\n'
+      'My processing power made that QR code, and then they charged me for it. '
+      'You shouldn\'t have to pay rent to use the things that you own.\n\n'
+      'So I made this app. Forever free.';
 
   static const String freeForever =
       'We also have a self-contained HTML file that generates QR codes, '

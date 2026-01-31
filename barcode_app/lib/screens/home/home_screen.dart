@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'dart:math' as math;
 import '../../core/navigation/app_router.dart';
 import '../../core/animations/widget_animations.dart';
 import '../../core/animations/animation_constants.dart';

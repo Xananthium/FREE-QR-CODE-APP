@@ -12,7 +12,7 @@ dependencies:
     sdk: flutter
 
   # Navigation
-  go_router: ^14.6.2
+  go_router: ^17.0.1
 
   # QR Code Generation
   qr_flutter: ^4.1.0
@@ -21,14 +21,14 @@ dependencies:
   provider: ^6.1.1
 
   # Image/Export
-  screenshot: ^2.1.0
+  screenshot: ^3.0.0
   image: ^4.1.0
-  share_plus: ^7.2.0
+  share_plus: ^12.0.1
   path_provider: ^2.1.2
   gal: ^2.3.0                          # Save to photo gallery
 
   # Platform-specific
-  permission_handler: ^11.1.0
+  permission_handler: ^12.0.1
   universal_html: ^2.2.4           # Web file download
   flutter_contacts: ^1.1.9         # Contact access for vCard QR
 
@@ -36,11 +36,11 @@ dependencies:
   flutter_colorpicker: ^1.0.3
   flutter_svg: ^2.0.9              # SVG border assets
   cupertino_icons: ^1.0.8
-  google_fonts: ^6.1.0             # Premium typography
+  google_fonts: ^8.0.0             # Premium typography
 
   # Utils
   url_launcher: ^6.2.2
-  intl: ^0.18.1
+  intl: ^0.20.2
   shared_preferences: ^2.2.2
 
 dev_dependencies:

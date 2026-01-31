@@ -8,13 +8,17 @@
 
 ## 📖 Why This App Exists
 
-I was planning my daughter's 6th birthday party and printing invitations with a Google Maps QR code to the venue. I clicked on the first website that said "free QR codes." I was very busy planning the party, created the QR code, put it on the cards, and sent them out.
+There's a special time in May when my wife, my daughter, and my sister all share a birthday. We decided to do an extra special party, and I made invitations with a Google Maps QR code to the venue.
 
-**Three days later** I got an email that said I would need to buy a membership if I wanted this QR code to stay active.
+I searched for a "Free QR Code Generator" and clicked the first result. I created the QR code, put it on the cards, and sent them out.
 
-Needless to say, I didn't pay their **$30/year membership** so this QR code could stay active for a few days, and I got several calls from confused parents about broken invitations.
+**Three days later**, I got an email saying my QR code was no longer active. To reactivate it, I needed a yearly membership for **$30+**.
 
-**So I wrote this app. It's free forever.**
+I got a lot of calls about the broken QR code, but I didn't pay the membership.
+
+**My processing power made that QR code, and then they charged me for it. You shouldn't have to pay rent to use the things that you own.**
+
+**So I made this app. Forever free.**
 
 ---
 

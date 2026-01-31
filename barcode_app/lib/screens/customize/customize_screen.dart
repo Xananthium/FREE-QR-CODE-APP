@@ -220,44 +220,6 @@ class CustomizeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildBorderSection(BuildContext context, ThemeData theme, Responsive responsive) {
-    final provider = context.watch<QRProvider>();
-    final currentRegistryType = _mapToRegistryType(provider.borderStyle.type);
-    
-    final galleryHeight = responsive.value(
-      phone: 240.0,
-      tablet: 280.0,
-      desktop: 320.0,
-    );
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _SectionHeader(
-          icon: Icons.border_style_rounded,
-          title: 'Select Border',
-          subtitle: 'Choose a decorative frame',
-          theme: theme,
-          responsive: responsive,
-        ),
-        SizedBox(height: responsive.cardSpacing),
-        BorderGallery(
-          selectedBorderType: currentRegistryType,
-          primaryColor: provider.borderStyle.color,
-          secondaryColor: provider.borderStyle.secondaryColor,
-          onBorderSelected: (type) async {
-            final style = qr_models.BorderStyle.preset(
-              _mapBorderType(type),
-              color: provider.borderStyle.color,
-            );
-            await provider.updateBorderStyle(style);
-          },
-          height: galleryHeight,
-        ),
-      ],
-    );
-  }
-
   Widget _buildBorderFrameSection(BuildContext context, ThemeData theme, Responsive responsive) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -498,71 +460,6 @@ class CustomizeScreen extends StatelessWidget {
           margin: const EdgeInsets.all(16),
         ),
       );
-    }
-  }
-
-  // Border type mapping functions
-  qr_models.BorderType _mapBorderType(registry.BorderType type) {
-    switch (type) {
-      case registry.BorderType.classic:
-        return qr_models.BorderType.classic;
-      case registry.BorderType.minimal:
-        return qr_models.BorderType.minimal;
-      case registry.BorderType.rounded:
-        return qr_models.BorderType.mediumRounded;
-      case registry.BorderType.ornate:
-        return qr_models.BorderType.ornateCorners;
-      case registry.BorderType.geometric:
-        return qr_models.BorderType.geometric;
-      case registry.BorderType.gradient:
-        return qr_models.BorderType.gradient;
-      case registry.BorderType.shadow:
-        return qr_models.BorderType.shadow;
-      case registry.BorderType.dotted:
-        return qr_models.BorderType.dotted;
-      case registry.BorderType.floral:
-        return qr_models.BorderType.floral;
-    }
-  }
-
-  registry.BorderType _mapToRegistryType(qr_models.BorderType type) {
-    switch (type) {
-      case qr_models.BorderType.classic:
-      case qr_models.BorderType.solid:
-        return registry.BorderType.classic;
-      case qr_models.BorderType.minimal:
-      case qr_models.BorderType.modern:
-        return registry.BorderType.minimal;
-      case qr_models.BorderType.mediumRounded:
-      case qr_models.BorderType.roundedSquare:
-      case qr_models.BorderType.lightRounded:
-      case qr_models.BorderType.heavyRounded:
-        return registry.BorderType.rounded;
-      case qr_models.BorderType.ornateCorners:
-      case qr_models.BorderType.vintage:
-      case qr_models.BorderType.baroque:
-      case qr_models.BorderType.elegant:
-        return registry.BorderType.ornate;
-      case qr_models.BorderType.geometric:
-      case qr_models.BorderType.hexagon:
-      case qr_models.BorderType.octagon:
-      case qr_models.BorderType.diamond:
-        return registry.BorderType.geometric;
-      case qr_models.BorderType.gradient:
-      case qr_models.BorderType.neon:
-        return registry.BorderType.gradient;
-      case qr_models.BorderType.shadow:
-      case qr_models.BorderType.threeD:
-      case qr_models.BorderType.embossed:
-        return registry.BorderType.shadow;
-      case qr_models.BorderType.dotted:
-      case qr_models.BorderType.dottedPattern:
-        return registry.BorderType.dotted;
-      case qr_models.BorderType.floral:
-      case qr_models.BorderType.nature:
-        return registry.BorderType.floral;
-      default:
-        return registry.BorderType.classic;
     }
   }
 }
