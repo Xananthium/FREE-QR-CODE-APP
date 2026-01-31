@@ -73,8 +73,8 @@ class _ExportScreenState extends State<ExportScreen> {
 
       if (result.success) {
         setState(() => _saveButtonState = ExportButtonState.success);
-        _showSuccess('Saved to ${result.filePath}');
-        
+        _showSuccess('Saved to Photos! Open your Photos app to view it.');
+
         // Reset button after 2 seconds
         await Future.delayed(const Duration(seconds: 2));
         if (mounted) {

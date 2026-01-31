@@ -111,38 +111,36 @@ class LivePreview extends StatelessWidget {
 
     // If border frame is selected, show QR with PNG frame overlay
     if (provider.borderFrame != null) {
-      return Stack(
-        alignment: Alignment.center,
-        children: [
-          // Background
-          Container(
-            width: size,
-            height: size,
-            color: provider.backgroundColor,
-          ),
-          // QR code (centered, smaller to fit in frame)
-          Container(
-            width: size * 0.6, // QR is 60% of frame size
-            height: size * 0.6,
-            color: provider.backgroundColor,
-            child: qrWidget,
-          ),
-          // Border frame overlay
-          Image.asset(
-            provider.borderFrame!.assetPath,
-            width: size,
-            height: size,
-            fit: BoxFit.contain,
-            errorBuilder: (context, error, stackTrace) {
-              return Container(
-                width: size,
-                height: size,
-                color: Colors.red.withValues(alpha: 0.1),
-                child: const Icon(Icons.broken_image),
-              );
-            },
-          ),
-        ],
+      return Container(
+        width: size,
+        height: size,
+        color: provider.backgroundColor,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            // QR code (centered, smaller to fit in frame)
+            Container(
+              width: size * 0.6, // QR is 60% of frame size
+              height: size * 0.6,
+              child: qrWidget,
+            ),
+            // Border frame overlay
+            Image.asset(
+              provider.borderFrame!.assetPath,
+              width: size,
+              height: size,
+              fit: BoxFit.contain,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  width: size,
+                  height: size,
+                  color: Colors.red.withValues(alpha: 0.1),
+                  child: const Icon(Icons.broken_image),
+                );
+              },
+            ),
+          ],
+        ),
       );
     }
 

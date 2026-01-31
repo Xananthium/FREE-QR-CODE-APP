@@ -6,6 +6,7 @@ import '../../borders/border_registry.dart' as registry;
 import '../../core/animations/widget_animations.dart';
 import '../../core/animations/animation_constants.dart';
 import '../../core/utils/responsive.dart';
+import '../../core/navigation/app_router.dart';
 import 'widgets/live_preview.dart';
 import 'widgets/border_gallery.dart';
 import 'widgets/border_frame_picker.dart';
@@ -407,60 +408,9 @@ class CustomizeScreen extends StatelessWidget {
     );
   }
 
-  Future<void> _exportQRCode(BuildContext context) async {
-    final provider = context.read<QRProvider>();
-    final success = await provider.exportQRCode();
-
-    if (!context.mounted) return;
-
-    if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Row(
-            children: [
-              Icon(Icons.check_circle_rounded, color: Colors.white),
-              SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  'QR Code exported successfully!',
-                  style: TextStyle(fontWeight: FontWeight.w500),
-                ),
-              ),
-            ],
-          ),
-          backgroundColor: Colors.green.shade600,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          duration: const Duration(seconds: 2),
-          margin: const EdgeInsets.all(16),
-        ),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Row(
-            children: [
-              Icon(Icons.error_rounded, color: Colors.white),
-              SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  'Failed to export QR Code',
-                  style: TextStyle(fontWeight: FontWeight.w500),
-                ),
-              ),
-            ],
-          ),
-          backgroundColor: Colors.red.shade600,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          margin: const EdgeInsets.all(16),
-        ),
-      );
-    }
+  void _exportQRCode(BuildContext context) {
+    // Navigate to export screen where user can choose format, resolution, save/share
+    context.goToExport();
   }
 }
 
