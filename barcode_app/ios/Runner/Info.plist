@@ -55,7 +55,11 @@
 	<!-- Privacy - Camera Permission -->
 	<key>NSCameraUsageDescription</key>
 	<string>We need camera access to scan QR codes and barcodes.</string>
-	
+
+	<!-- Privacy - Contacts Permission -->
+	<key>NSContactsUsageDescription</key>
+	<string>We need access to your contacts to create vCard QR codes from your contact list.</string>
+
 	<!-- Privacy - Location (required by App Store even if not used) -->
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>This app does not use your location.</string>

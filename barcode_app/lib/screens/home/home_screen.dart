@@ -91,8 +91,9 @@ class _HomeScreenState extends State<HomeScreen>
     );
     _pageController.addListener(() {
       final page = _pageController.page?.round() ?? 0;
-      if (page != _currentPage) {
-        setState(() => _currentPage = page);
+      final wrappedPage = page % _qrTypes.length;
+      if (wrappedPage != _currentPage) {
+        setState(() => _currentPage = wrappedPage);
       }
     });
   }
@@ -345,15 +346,16 @@ class _HomeScreenState extends State<HomeScreen>
 
                 SizedBox(height: responsive.spacing * 2),
 
-                // Swipe carousel
+                // Swipe carousel (circular/infinite)
                 Expanded(
                   child: PageView.builder(
                     controller: _pageController,
-                    itemCount: _qrTypes.length,
+                    itemCount: null, // Infinite scrolling
                     itemBuilder: (context, index) {
+                      final wrappedIndex = index % _qrTypes.length;
                       return _buildCarouselCard(
                         context,
-                        _qrTypes[index],
+                        _qrTypes[wrappedIndex],
                         colorScheme,
                         responsive,
                         isDark,
