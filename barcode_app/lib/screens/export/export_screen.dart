@@ -5,6 +5,7 @@ import 'package:qr_flutter/qr_flutter.dart';
 import '../../core/navigation/app_router.dart';
 import '../../core/utils/export_service.dart';
 import '../../core/utils/share_service.dart';
+import '../../core/services/qr_history_service.dart';
 import '../../models/export_options.dart';
 import '../../providers/export_provider.dart';
 import '../../providers/qr_provider.dart';
@@ -36,7 +37,8 @@ class _ExportScreenState extends State<ExportScreen> {
   // Services
   final ExportService _exportService = ExportService();
   final ShareService _shareService = ShareService();
-  
+  final QRHistoryService _historyService = QRHistoryService();
+
   // Export button states (separate for Save and Share)
   ExportButtonState _saveButtonState = ExportButtonState.ready;
   ExportButtonState _shareButtonState = ExportButtonState.ready;
@@ -74,6 +76,16 @@ class _ExportScreenState extends State<ExportScreen> {
       if (result.success) {
         setState(() => _saveButtonState = ExportButtonState.success);
         _showSuccess('Saved to Photos! Open your Photos app to view it.');
+
+        // Save to history
+        await _historyService.addToHistory(
+          content: qrProvider.currentContent,
+          type: qrProvider.currentType,
+          label: qrProvider.currentQRData?.label,
+        );
+
+        // Clear current QR code
+        qrProvider.clearQRData();
 
         // Wait briefly to show success, then navigate home
         await Future.delayed(const Duration(milliseconds: 1500));
@@ -133,6 +145,16 @@ class _ExportScreenState extends State<ExportScreen> {
       if (result.status.name == 'success') {
         setState(() => _shareButtonState = ExportButtonState.success);
         _showSuccess('Shared successfully!');
+
+        // Save to history
+        await _historyService.addToHistory(
+          content: qrProvider.currentContent,
+          type: qrProvider.currentType,
+          label: qrProvider.currentQRData?.label,
+        );
+
+        // Clear current QR code
+        qrProvider.clearQRData();
 
         // Wait briefly to show success, then navigate home
         await Future.delayed(const Duration(milliseconds: 1500));

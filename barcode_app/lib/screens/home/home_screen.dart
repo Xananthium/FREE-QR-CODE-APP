@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import '../../core/navigation/app_router.dart';
 import '../../core/animations/widget_animations.dart';
 import '../../core/animations/animation_constants.dart';
 import '../../core/utils/responsive.dart';
+import '../../core/services/qr_history_service.dart';
+import '../../models/qr_history_item.dart';
 import '../../providers/theme_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/constants/brand_constants.dart';
@@ -21,7 +24,9 @@ class _HomeScreenState extends State<HomeScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _themeToggleController;
   final PageController _pageController = PageController();
+  final QRHistoryService _historyService = QRHistoryService();
   int _currentPage = 0;
+  List<QRHistoryItem> _historyItems = [];
 
   final List<QRTypeData> _qrTypes = [
     QRTypeData(
@@ -96,6 +101,23 @@ class _HomeScreenState extends State<HomeScreen>
         setState(() => _currentPage = wrappedPage);
       }
     });
+    _loadHistory();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Reload history when coming back to this screen
+    _loadHistory();
+  }
+
+  Future<void> _loadHistory() async {
+    final history = await _historyService.getHistory();
+    if (mounted) {
+      setState(() {
+        _historyItems = history;
+      });
+    }
   }
 
   @override
@@ -364,7 +386,13 @@ class _HomeScreenState extends State<HomeScreen>
                   ),
                 ),
 
-                SizedBox(height: responsive.spacing * 2),
+                SizedBox(height: responsive.spacing * 3),
+
+                // QR History Section
+                if (_historyItems.isNotEmpty) ...[
+                  _buildHistorySection(context, theme, colorScheme, responsive, isDark),
+                  SizedBox(height: responsive.spacing * 2),
+                ],
 
                 // Footer
                 _buildGalleryFooter(context, colorScheme, responsive, isDark),
@@ -615,6 +643,134 @@ class _HomeScreenState extends State<HomeScreen>
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildHistorySection(BuildContext context, ThemeData theme,
+      ColorScheme colorScheme, Responsive responsive, bool isDark) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Section title
+        Padding(
+          padding: responsive.horizontalPadding,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Recent QR Codes',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.onSurface,
+                ),
+              ),
+              if (_historyItems.isNotEmpty)
+                TextButton(
+                  onPressed: () async {
+                    await _historyService.clearHistory();
+                    _loadHistory();
+                  },
+                  child: const Text('Clear All'),
+                ),
+            ],
+          ),
+        ),
+
+        SizedBox(height: responsive.spacing),
+
+        // History items horizontal scroll
+        SizedBox(
+          height: 120,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            padding: responsive.horizontalPadding,
+            itemCount: _historyItems.length,
+            itemBuilder: (context, index) {
+              final item = _historyItems[index];
+              return _buildHistoryCard(
+                context,
+                item,
+                theme,
+                colorScheme,
+                responsive,
+                isDark,
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildHistoryCard(
+    BuildContext context,
+    QRHistoryItem item,
+    ThemeData theme,
+    ColorScheme colorScheme,
+    Responsive responsive,
+    bool isDark,
+  ) {
+    return Container(
+      width: 100,
+      margin: const EdgeInsets.only(right: 12),
+      decoration: BoxDecoration(
+        color: isDark
+            ? colorScheme.surfaceVariant
+            : Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: colorScheme.outline.withValues(alpha: 0.1),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // QR code thumbnail
+          Container(
+            width: 70,
+            height: 70,
+            padding: const EdgeInsets.all(4),
+            child: QrImageView(
+              data: item.content,
+              version: QrVersions.auto,
+              size: 70,
+              eyeStyle: QrEyeStyle(
+                eyeShape: QrEyeShape.square,
+                color: colorScheme.onSurface,
+              ),
+              dataModuleStyle: QrDataModuleStyle(
+                dataModuleShape: QrDataModuleShape.square,
+                color: colorScheme.onSurface,
+              ),
+              backgroundColor: Colors.transparent,
+            ),
+          ),
+
+          const SizedBox(height: 4),
+
+          // Label
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Text(
+              item.displayLabel,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+                fontSize: 10,
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
       ),
     );
   }
