@@ -36,6 +36,12 @@ class _LocationGeneratorScreenState extends State<LocationGeneratorScreen> {
   final _latitudeController = TextEditingController();
   final _longitudeController = TextEditingController();
 
+  // Geocoding fields (for converting address to coordinates)
+  final _geoStreetController = TextEditingController();
+  final _geoCityController = TextEditingController();
+  final _geoStateController = TextEditingController();
+  final _geoZipController = TextEditingController();
+
   final _labelController = TextEditingController();
 
   LocationMode _mode = LocationMode.address;
@@ -51,6 +57,10 @@ class _LocationGeneratorScreenState extends State<LocationGeneratorScreen> {
     _zipController.dispose();
     _latitudeController.dispose();
     _longitudeController.dispose();
+    _geoStreetController.dispose();
+    _geoCityController.dispose();
+    _geoStateController.dispose();
+    _geoZipController.dispose();
     _labelController.dispose();
     super.dispose();
   }
@@ -128,6 +138,39 @@ class _LocationGeneratorScreenState extends State<LocationGeneratorScreen> {
     return parts.join(', ');
   }
 
+  /// Format geocoding address parts
+  String _formatGeocodingAddress() {
+    final parts = <String>[];
+
+    final street = _geoStreetController.text.trim();
+    if (street.isNotEmpty) {
+      parts.add(street);
+    }
+
+    final city = _geoCityController.text.trim();
+    final state = _geoStateController.text.trim();
+    final zip = _geoZipController.text.trim();
+
+    final cityStateParts = <String>[];
+    if (city.isNotEmpty) {
+      cityStateParts.add(city);
+    }
+
+    if (state.isNotEmpty && zip.isNotEmpty) {
+      cityStateParts.add('$state $zip');
+    } else if (state.isNotEmpty) {
+      cityStateParts.add(state);
+    } else if (zip.isNotEmpty) {
+      cityStateParts.add(zip);
+    }
+
+    if (cityStateParts.isNotEmpty) {
+      parts.add(cityStateParts.join(', '));
+    }
+
+    return parts.join(', ');
+  }
+
   /// Convert address to GPS coordinates using Nominatim (OpenStreetMap) API
   /// This is a free, privacy-friendly geocoding service with no API key required
   Future<void> _getCoordinatesFromAddress() async {
@@ -138,12 +181,12 @@ class _LocationGeneratorScreenState extends State<LocationGeneratorScreen> {
 
     try {
       // Validate at least some address fields are filled
-      if (_streetController.text.trim().isEmpty &&
-          _cityController.text.trim().isEmpty) {
+      if (_geoStreetController.text.trim().isEmpty &&
+          _geoCityController.text.trim().isEmpty) {
         throw Exception('Please enter at least a street address or city');
       }
 
-      final address = _formatAddress();
+      final address = _formatGeocodingAddress();
 
       // Call Nominatim API (OpenStreetMap)
       final encodedAddress = Uri.encodeComponent(address);
@@ -169,9 +212,8 @@ class _LocationGeneratorScreenState extends State<LocationGeneratorScreen> {
         final lat = double.parse(location['lat']);
         final lon = double.parse(location['lon']);
 
-        // Switch to coordinates mode and fill in the values
+        // Fill in the coordinate values
         setState(() {
-          _mode = LocationMode.coordinates;
           _latitudeController.text = lat.toStringAsFixed(6);
           _longitudeController.text = lon.toStringAsFixed(6);
           _isGeocoding = false;
@@ -405,6 +447,7 @@ class _LocationGeneratorScreenState extends State<LocationGeneratorScreen> {
       child: Column(
         children: [
           if (_mode == LocationMode.address) ...[
+            // Simple address entry
             _buildTextField(
               controller: _streetController,
               label: 'Street Address',
@@ -446,29 +489,8 @@ class _LocationGeneratorScreenState extends State<LocationGeneratorScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
-            // Get Coordinates button
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: _isGeocoding ? null : _getCoordinatesFromAddress,
-                icon: _isGeocoding
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.my_location_rounded),
-                label: Text(_isGeocoding ? 'Finding...' : 'Get GPS Coordinates'),
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
-            ),
           ] else ...[
+            // Coordinates mode: Manual entry OR convert from address
             Row(
               children: [
                 Expanded(
@@ -495,6 +517,94 @@ class _LocationGeneratorScreenState extends State<LocationGeneratorScreen> {
                   ),
                 ),
               ],
+            ),
+            const SizedBox(height: 16),
+            // Divider with "OR"
+            Row(
+              children: [
+                const Expanded(child: Divider()),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Text(
+                    'OR',
+                    style: TextStyle(
+                      color: colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+                const Expanded(child: Divider()),
+              ],
+            ),
+            const SizedBox(height: 16),
+            // Address to coordinates converter
+            Text(
+              'Get coordinates from address:',
+              style: TextStyle(
+                color: colorScheme.onSurfaceVariant,
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 12),
+            _buildTextField(
+              controller: _geoStreetController,
+              label: 'Street Address',
+              hint: '1600 Amphitheatre Pkwy',
+              icon: Icons.home_rounded,
+            ),
+            const SizedBox(height: 12),
+            _buildTextField(
+              controller: _geoCityController,
+              label: 'City',
+              hint: 'Mountain View',
+              icon: Icons.location_city_rounded,
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  flex: 2,
+                  child: _buildTextField(
+                    controller: _geoStateController,
+                    label: 'State',
+                    hint: 'CA',
+                    icon: Icons.map_rounded,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildTextField(
+                    controller: _geoZipController,
+                    label: 'ZIP',
+                    hint: '94043',
+                    icon: Icons.pin_drop_rounded,
+                    keyboardType: TextInputType.number,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            // Get Coordinates button
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: _isGeocoding ? null : _getCoordinatesFromAddress,
+                icon: _isGeocoding
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.my_location_rounded),
+                label: Text(_isGeocoding ? 'Finding...' : 'Get GPS Coordinates'),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
             ),
           ],
           const SizedBox(height: 16),
